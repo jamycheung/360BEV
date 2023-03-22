@@ -5,6 +5,8 @@
 </div>
 
 <p align="center">
+<a href="https://arxiv.org/pdf/2303.11910.pdf">
+    <img src="https://img.shields.io/badge/arXiv-2303.11910-red" /></a>
 <a href="https://jamycheung.github.io/360BEV.html">
     <img src="https://img.shields.io/badge/Project-page-green" /></a>
 <a href="https://pytorch.org/">
@@ -79,3 +81,16 @@ Data statistics:
 ## License
 
 This repository is under the Apache-2.0 license. For commercial use, please contact with the authors.
+
+
+## Citation
+
+If you are interested in this work, please cite the following works:
+```
+@article{teng2023360bev,
+  title={360BEV: Panoramic Semantic Mapping for Indoor Bird's-Eye View}, 
+  author={Teng, Zhifeng and Zhang, Jiaming and Yang, Kailun and Peng, Kunyu and Shi, Hao and Reiß, Simon and Cao, Ke and Stiefelhagen, Rainer},
+  journal={arXiv preprint arXiv:2303.11910},
+  year={2023}
+}
+```
