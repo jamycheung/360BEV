@@ -60,9 +60,28 @@ Data statistics:
 
 ## Results and weights
 
+### 360FV Stanford-2D3D 
+
+| Model      | Backbone   | Input | mIoU  | weights |
+| :--------- | :--------- | :---- | :---- | :------ |
+| Trans4PASS | MiT-B2     | RGB   | 52.1 |         |
+| CFCB       | ResNet-101 | RGB   | 52.2 |         |
+| Ours       | MiT-B2     | RGB   | **54.3** | *Coming soon...* |
+
+### 360FV-Matterport
+
+| Model      | Backbone   | Input | mIoU  | weights |
+| :--------- | :--------- | :---- | :---- | :------ |
+|HoHoNet |  ResNet-101 | RGB-D | 44.85 | |
+|SegFormer  |  MiT-B2 | RGB | 45.53 | |
+|Ours |  MiT-B2 | RGB | **46.35** | *Coming soon...* |
+
+
 ### 360BEV-Stanford
 | Method    | Backbone | Acc    | mRecall | mPrecision | mIoU        | weights |
 | :--------- | :----------: | :--------: | :---------: | :------------: | :------------: | :-------------- |
+|Trans4Map | MiT-B0 | 86.41 | 40.45 | 57.47 | 32.26 |  |
+|Trans4Map | MiT-B2 | 86.53 | 45.28 | 62.61 | 36.08 |  |
 | Ours | MiT-B0       | 92.07     | 50.14      | 65.37         | 42.42          | *Coming soon...* |
 | Ours | MiT-B2       | **92.80** | 53.56      | 67.72         | 45.78          | *Coming soon...* |
 | Ours | MSCA-B       | 92.67     | **55.02**  | **68.02**     | **46.44**      | *Coming soon...* |
@@ -70,6 +89,8 @@ Data statistics:
 ### 360BEV-Matterport
 | Method    | Backbone | Acc    | mRecall | mPrecision | mIoU        | weights |
 | :--------- | :----------: | :--------: | :---------: | :------------: | :------------: | :-------------- |
+|Trans4Map | MiT-B0 | 70.19 | 44.31 | 50.39 | 31.92  |  |
+|Trans4Map | MiT-B2 | 73.28 | 51.60 | 53.02 | 36.72  |  |
 | Ours | MiT-B0 | 75.44 | 48.80 | 56.01 | 36.98  | *Coming soon...* |
 | Ours | MiT-B2 |78.80 |59.54 |59.97  | 44.32  | *Coming soon...* |
 | Ours | MSCA-B |**78.93** | **60.51** | **62.83** | **46.31** | *Coming soon...* |
