@@ -65,7 +65,7 @@ Data statistics:
 | Model      | Backbone   | Input | mIoU  | weights |
 | :--------- | :--------- | :---- | :---- | :------ |
 | Trans4PASS | MiT-B2     | RGB   | 52.1 |         |
-| CFCB       | ResNet-101 | RGB   | 52.2 |         |
+| CBFC       | ResNet-101 | RGB   | 52.2 |         |
 | Ours       | MiT-B2     | RGB   | **54.3** | *Coming soon...* |
 
 ### 360FV-Matterport
