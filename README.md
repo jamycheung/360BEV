@@ -29,8 +29,8 @@ For more details, please check our paper.
 ## Update
 
 - [x] 03/2023, init repository.
+- [x] 04/2023, release code and models.
 - [ ] 04/2023, release datasets.
-- [ ] 04/2023, release code and models.
 
 ## 360BEV datasets
 
