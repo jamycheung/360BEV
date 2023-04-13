@@ -1,0 +1,73 @@
+name_experiment: model_pano_segformer
+model:
+    arch: 360Attention
+    backbone: transformer
+    backbone_size: b2
+    finetune: False
+    n_obj_classes: 13
+    ego_feature_dim: 64
+    # mem_feature_dim: 64
+    mem_feature_dim: 128
+    # mem_update: replace
+    # ego_downsample: False
+    pano_h: 512
+    pano_w: 1024
+    batch_size_every_processer: 1
+    num_head: 4
+    num_point: 4
+    sampling_offsets: 1
+    360Attebtion_cfg:
+            {'type': 'BEVFormerEncoder_pano',
+            'num_layers': 2,
+            'pc_range': [ -5, -5, -1, 5, 5, 1 ], # pc_range: pointcloud_range_XYZ
+            'num_points_in_pillar': 1,
+            'return_intermediate': False,
+            'transformerlayers': { 'type': 'BEVFormerLayer_pano',
+                                   'attn_cfgs': [ { 'type': 'PanoCrossAttention', 'pc_range': [ -5, -5, -2, 5, 5, 1 ],
+                                                    'deformable_attention': { 'type': 'MSDeformableAttention_pano', 'embed_dims': 128, 'num_heads': 4, 'num_points': 2, 'num_levels': 1, 'sampling_offsets_th': 1}, 'embed_dims': 128 } ],
+                                   'feedforward_channels': 128,
+                                   'ffn_dropout': 0.1,
+                                   'operation_order': ['cross_attn', 'norm', 'ffn', 'norm'],
+              # 'operation_order': ('cross_attn', 'ffn', 'norm')
+                                 }
+            }
+
+data:
+    train_split: 1_train
+    val_split: 1_val
+    # train_split: 2_train
+    # val_split: 2_val
+    # train_split: 3_train
+    # val_split: 3_val
+
+    # test_split: test
+    # root: /hkfs/work/workspace/scratch/tp9819-trans4map/dataset_zteng/trans4map_baseline
+    # root: /hkfs/work/workspace/scratch/tp9819-ws/datasets_zteng/hoho_data
+    # root: /hkfs/work/workspace/scratch/tp9819-ws/datasets_zteng/stanford2d3d_pano/s2d3d_semantic
+    # root: /cvhci/data/VisLoc/zteng/trans4map_baseline
+    root: /cvhci/temp/zteng/s2d3d_semantic
+    # ego_downsample: False
+    feature_type: lastlayer
+
+training:
+    train_epoch: 100
+    batch_size: 8
+    n_workers: 8
+    print_interval: 10
+    optimizer:
+        lr:  0.00006
+        # lr:  0.00006
+        betas: [0.9, 0.999]
+        weight_decay: 0.001
+    scheduler:
+        lr_decay_rate: 0.8
+        lr_epoch_per_decay: 20
+    resume: #runs/gru_fullrez_lastlayer_m256/fuse/smnet_mp3d_best_model.pkl
+    load_model: #runs/gru_fullrez_lastlayer_m256/54731/smnet_mp3d_best_model.pkl
+
+# model_path: ./checkpoints/model_pano_segformer/2023-03-07-22-45/ckpt_model.pkl  # 3-fold
+# model_path: ./checkpoints/model_pano_segformer/2023-03-07-16-55/ckpt_model.pkl  # 2-fold
+model_path: ./checkpoints/model_pano_segformer2/2023-03-06-22-16/ckpt_model.pkl  # 1-fold
+
+output_dir: ./test_result/segformer_panoramic/fold_1/
+seed: 9876

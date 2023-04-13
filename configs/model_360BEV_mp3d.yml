@@ -1,0 +1,91 @@
+name_experiment: pano_deformable_detr
+model:
+    arch: 360Mapper
+    backbone: segnext
+    # backbone: transformer
+    backbone_size: b2
+    finetune: False
+    n_obj_classes: 21
+    ego_feature_dim: 64
+    mem_feature_dim: 128
+    mem_update: replace
+    ego_downsample: False
+    bev_h: 500
+    bev_w: 500
+    img_shape: [1024, 2048, 3]
+    batch_size_every_processer: 1
+    backbone_config:
+      { 'type': 'EncoderDecoder',
+        # 'pretrained': None,
+        'backbone': { 'type': 'MSCAN',
+                      'embed_dims': [ 64, 128, 320, 512 ],
+                      'mlp_ratios': [ 8, 8, 4, 4 ],
+                      'drop_rate': 0.0,
+                      'drop_path_rate': 0.1,
+                      'depths': [ 3, 3, 12, 3 ],
+                      'norm_cfg': { 'type': 'SyncBN',
+                                    'requires_grad': True },
+                      'init_cfg': { 'type': 'Pretrained',
+                                    'checkpoint': './checkpoints/mscan_b.pth' } },
+        'decode_head': { 'type': 'LightHamHead',
+                         'in_channels': [ 128, 320, 512 ],
+                         'in_index': [ 1, 2, 3 ],
+                         'channels': 512,
+                         'ham_channels': 512,
+                         'dropout_ratio': 0.1,
+                         'num_classes': 21,
+                         'norm_cfg': { 'type': 'GN',
+                                       'num_groups': 32,
+                                       'requires_grad': True },
+                         'align_corners': False,
+                         'loss_decode': { 'type': 'CrossEntropyLoss',
+                                          'use_sigmoid': False,
+                                          'loss_weight': 1.0 } },
+        # 'train_cfg': None, 'test_cfg': {'mode': 'whole'}
+      }
+
+    360Attention_cfg:
+      { 'type': 'BEVFormerEncoder',
+        'num_layers': 2,
+        'pc_range': [ -5, -5, -1, 5, 5, 1 ], # pc_range: pointcloud_range_XYZ
+        'num_points_in_pillar': 1,
+        'return_intermediate': False,
+        'transformerlayers': { 'type': 'BEVFormerLayer',
+                               'attn_cfgs': [ { 'type': 'SpatialCrossAttention', 'pc_range': [ -5, -5, -2, 5, 5, 1 ],
+                                                'deformable_attention': { 'type': 'MSDeformableAttention3D', 'embed_dims': 128, 'num_heads': 4 ,'num_points': 2, 'num_levels': 1, 'sampling_offsets_th': 1}, 'embed_dims': 128 } ],
+                               'feedforward_channels': 128,
+                               'ffn_dropout': 0.1,
+                               'operation_order': ['cross_attn', 'norm', 'ffn', 'norm'],
+          # 'operation_order': ('cross_attn', 'ffn', 'norm')
+        }
+      }
+
+data:
+    train_split: train
+    val_split: val
+    test_split: test
+    # root: /hkfs/work/workspace/scratch/tp9819-trans4map/dataset_zteng/trans4map_baseline
+    root: /cvhci/data/VisLoc/zteng/trans4map_baseline
+
+    ego_downsample: False
+    feature_type: lastlayer
+
+training:
+    train_epoch: 60
+    batch_size: 4
+    n_workers: 8
+    print_interval: 10
+    optimizer:
+        lr:  0.00006
+        # lr:  0.00006
+        betas: [0.9, 0.999]
+        weight_decay: 0.01
+    scheduler:
+        lr_decay_rate: 0.7
+        lr_epoch_per_decay: 10
+    resume: #runs/gru_fullrez_lastlayer_m256/fuse/smnet_mp3d_best_model.pkl
+    load_model: #runs/gru_fullrez_lastlayer_m256/54731/smnet_mp3d_best_model.pkl
+
+model_path: ./checkpoints/2023-02-24-00-10/ckpt_model.pkl
+output_dir: ./test_result/detr_with_segformer/2023-04-10/
+seed: 9876
