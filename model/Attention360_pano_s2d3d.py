@@ -10,13 +10,7 @@ from Backbone.segmentron.config.settings import cfg as cfg_trans4pass
 from model.modules.encoder_pano import BEVFormerEncoder_pano
 from model.modules.pano_cross_attention import PanoCrossAttention
 
-# from torchsummaryX import summary
-
-# import matplotlib.pyplot as plt
 from mmcv.cnn.bricks.transformer import build_transformer_layer_sequence
-# from mmdet.models.necks import FPN
-
-# from model.modules.point_sampling_panorama import get_bev_features
 from model.modules.point_sampling_panorama_s2d3d import get_bev_features
 
 
@@ -34,41 +28,25 @@ class Attention360_pano_s2d3d(nn.Module):
         self.encoder_cfg = cfg['360Attebtion_cfg']
 
         ################################################################################################################
-        #### 新增 encoding 初始化！
 
-        self.num_point  = cfg['num_point']
-        self.num_head = cfg['num_head']
-        self.sampling_offsets = cfg['sampling_offsets']
-
+        # self.num_point  = cfg['num_point']
+        # self.num_head = cfg['num_head']
+        # self.sampling_offsets = cfg['sampling_offsets']
 
         self.bev_h = cfg['pano_h']
         self.bev_w = cfg['pano_w']
         self.embed_dims = cfg['mem_feature_dim']
-        # self.bs = cfg['batch_size_every_processer']
 
+        # self.bs = cfg['batch_size_every_processer']
         # self.num_head = cfg["num_head"]
         # self.num_point = cfg["num_point"]
         # self.sampling_offsets = cfg['sampling_offsets']
-
         # self.map_width = self.bev_w
         # dtype = torch.float32
 
         ################################################################################################################
         ### Backbone  
 
-        # self.encoder_backbone = Segformer()
-        # self.pretrained_model_path = "./checkpoints/mit_b2.pth"
-        # # load pretrained weights
-        # state = torch.load(self.pretrained_model_path)
-        # #print('state:', state.keys())
-        # weights = {}
-        # for k, v in state.items():
-        #     # print('key_:', k)
-        #     weights[k] = v
-
-        # self.encoder_backbone.load_state_dict(weights, strict=False)
-
-        # self.encoder_backbone = Segformer_B4()
         if trans4pass_index == True:
             self.encoder_backbone = trans4pass_v2()
             self.pretrained_model_path = "./checkpoints/mit_b2.pth"
@@ -78,7 +56,6 @@ class Attention360_pano_s2d3d(nn.Module):
             self.encoder_backbone = mit_b1()
             self.pretrained_model_path = "./checkpoints/mit_b1.pth"
             self.decoder = Decoder(self.embed_dims, n_obj_classes)
-
 
         elif trans4pass_index == "b2":
             self.encoder_backbone = mit_b2()
@@ -92,39 +69,18 @@ class Attention360_pano_s2d3d(nn.Module):
 
         # load pretrained weights
         state = torch.load(self.pretrained_model_path)
-        #print('state:', state.keys())
         weights = {}
         for k, v in state.items():
-            # print('key_:', k)
             weights[k] = v
         self.encoder_backbone.load_state_dict(weights, strict=False)
 
         self.linear_fuse = nn.Conv2d(64, 128, 1)  # 64
-        ###################################################### deformable attention ########################################################################################
-        # self.encoder_cfg = {'type': 'BEVFormerEncoder_pano',
-        #                        'num_layers': 2,
-        #                        'pc_range': [-5, -5, -1, 5, 5, 1], # pc_range: pointcloud_range_XYZ
-        #                        'num_points_in_pillar': 1,
-        #                        'return_intermediate': False,
-        #                        'transformerlayers': {'type': 'BEVFormerLayer_pano',
-        #                                              'attn_cfgs': [{'type': 'PanoCrossAttention', 'pc_range': [-5, -5, -2, 5, 5, 1],
-        #                                                             'deformable_attention': {'type': 'MSDeformableAttention_pano', 'embed_dims': 128, 'num_points': 8, 'num_levels': 4}, 'embed_dims': 128}],
-        #                                              'feedforward_channels': 128,
-        #                                              'ffn_dropout': 0.1,
-        #                                              'operation_order': ('cross_attn', 'norm', 'ffn', 'norm'),
-        #                                              # 'operation_order': ('cross_attn', 'ffn', 'norm')
-        #                                              }
-        #                     }
-
+        ###################################################### deformable attention ####################################
         self.encoder = build_transformer_layer_sequence(self.encoder_cfg)
-        #####################################################################################################################################################################
+        ################################################################################################################
 
         self.bev_queries = torch.zeros(self.bev_h//2 * self.bev_w//2, self.embed_dims)
-
         self.dropout_rate = 0.1
-        # self.decoder = Decoder_segformer(self.dropout_rate, n_obj_classes)
-        # self.decoder = Decoder(self.embed_dims, n_obj_classes)
-        
 
     def weights_init(self, m):
         classname = m.__class__.__name__
@@ -136,24 +92,14 @@ class Attention360_pano_s2d3d(nn.Module):
             m.weight.datallscdkscd.fill_(1.)
             m.bias.data.fill_(1e-4)
 
-
     def forward(self, rgb, observed_masks):
         
-        # print('rgb_rgb:', rgb.size() # torch.Size([4, 3, 512, 1024])
         rgb_features = rgb
-
         rgb_features = rgb_features.unsqueeze(0)
-        # trans4pass 不需要
 
-
-        # qprint('shape_features:', rgb_features.size())
-        ### ？？？？
-        # rgb_features = rgb.squeeze(0)
-
-        # features = self.encoder(rgb_features)     # torch.Size([1, 1, 3, 512, 1024])
         ml_feat = self.encoder_backbone(rgb_features)
         ml_feat = self.linear_fuse(ml_feat)
-        # print("ml_feat:", ml_feat.size())  # [4, 3, 512, 1024] -> [4, 128, 128, 256]
+
         ml_feat = [ml_feat]
 
         bev_queries, feat_flatten, bev_h, bev_w, bev_pos, spatial_shapes, level_start_index = get_bev_features(
@@ -163,13 +109,13 @@ class Attention360_pano_s2d3d(nn.Module):
         prev_bev = None
         shift = None
 
-        kwargs = {'img_metas': [{
-                'img_shape': [(1024, 2048, 3)],
-                                    }],
-                'num_point': self.num_point,
-                'num_head': self.num_head,
-                'sampling_offsets': self.sampling_offsets
-                 }
+        # kwargs = {'img_metas': [{
+        #         'img_shape': [(1024, 2048, 3)],
+        #                             }],
+        #         'num_point': self.num_point,
+        #         'num_head': self.num_head,
+        #         'sampling_offsets': self.sampling_offsets
+        #          }
 
         pano_embed = self.encoder(
                     bev_queries,
@@ -184,17 +130,13 @@ class Attention360_pano_s2d3d(nn.Module):
                     shift=shift,
                     map_mask = None,
                     # map_heights = map_heights,
-                    **kwargs
+                    # **kwargs
                 )
 
-        # print('pano_embed:', pano_embed.size())
-        # pano_embed = pano_embed.reshape(-1, 128, 256, 128).permute(0, 3, 1, 2)
         pano_embed = pano_embed.reshape(-1, self.bev_h//2, self.bev_w//2, self.embed_dims).permute(0, 3, 1, 2)
-
         ##################################################################################################################################
     
         if self.trans4pass_index == True:
-            # print("ml_feat_size():", ml_feat[0].size(), ml_feat[1].size())
             c1,c2,c3,c4 = ml_feat
             # ml_feat = torch.nn.functional.interpolate(ml_feat, size=(512, 1024), mode = 'bilinear', align_corners=None)
             semmap = self.decoder(c1,c2,c3,c4)
@@ -232,10 +174,8 @@ class Decoder(nn.Module):
                                        )
 
     def forward(self, memory):
-        # print("memory_shape:", memory.size())
         l1 = self.layer(memory)
         out_obj = self.obj_layer(l1)
-        # print("out_obj_shape:", out_obj.size())
         return out_obj
 
 
@@ -272,7 +212,6 @@ class mini_Decoder_BEVSegFormer(nn.Module):
                                        )
 
     def forward(self, memory):
-        # print("memory_shape:", memory.size())
         l1 = self.layer1(memory)
         l1_upsampling =  F.interpolate(l1, size=(200, 200), mode="bilinear", align_corners=True)
 
@@ -281,7 +220,6 @@ class mini_Decoder_BEVSegFormer(nn.Module):
 
 
         out_obj = self.obj_layer(l2_upsampling)
-        # print("out_obj_shape:", out_obj.size())
         return out_obj
 
 class Decoder_segformer(nn.Module):

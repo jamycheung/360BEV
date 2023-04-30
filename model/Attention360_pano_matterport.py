@@ -18,7 +18,6 @@ from mmcv.cnn.bricks.transformer import build_transformer_layer_sequence
 from mmcv.cnn.bricks.transformer import build_positional_encoding
 from model.modules.point_sampling_panorama import get_bev_features
 from mmcv.cnn.bricks import transformer
-
 ########################################################################################################################
 
 class Attention360_pano(nn.Module):
@@ -61,7 +60,6 @@ class Attention360_pano(nn.Module):
         state = torch.load(self.pretrained_model_path)
         weights = {}
         for k, v in state.items():
-            # print('key_:', k)
             weights[k] = v
         self.encoder_backbone.load_state_dict(weights, strict=False)
 
@@ -84,7 +82,6 @@ class Attention360_pano(nn.Module):
             m.weight.datallscdkscd.fill_(1.)
             m.bias.data.fill_(1e-4)
 
-
     def forward(self, rgb, observed_masks):
         
         rgb_features = rgb
@@ -100,12 +97,12 @@ class Attention360_pano(nn.Module):
 
         pano_embed = self.encoder(
                     bev_queries,
-                    feat_flatten,                   ##### 四层feature map 拉直了来的，降采样8
+                    feat_flatten,                   ##### from feature maps
                     feat_flatten,
                     bev_h=bev_h,
                     bev_w=bev_w,
                     bev_pos=bev_pos,
-                    spatial_shapes=spatial_shapes,  ##### 都是feature map里来的
+                    spatial_shapes=spatial_shapes,  #####
                     level_start_index=level_start_index,
                     prev_bev=None,
                     shift=None,
@@ -115,7 +112,7 @@ class Attention360_pano(nn.Module):
                 )
 
         pano_embed = pano_embed.reshape(-1, self.bev_h//2, self.bev_w//2, self.embed_dims).permute(0, 3, 1, 2)
-        ##################################################################################################################################
+        ################################################################################################################
     
         if self.backbone_size == True:
             c1,c2,c3,c4 = ml_feat

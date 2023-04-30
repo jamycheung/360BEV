@@ -8,12 +8,9 @@ from pathlib import Path
 
 # from model.trans4pano_map import Trans4map_segformer
 # from model.trans4pano_deformable_detr import Trans4map_deformable_detr
-from model.front_view_segformer_matterport import front_view_segformer
+# from model.front_view_segformer_matterport import front_view_segformer
 from model.Attention360_pano_matterport import Attention360_pano
 from utils.semantic_utils import color_label
-
-# from model.pano_data_loader import DatasetLoader_pano
-# from torch.utils.data import DistributedSampler
 from utils.lib2_mp3d.dataset import matterport_SemDataset33
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -54,7 +51,7 @@ for k, v in model_state.items():
 
 model.load_state_dict(weights)
 model.eval()
-###########################################################################################
+########################################################################################################################
 
 test_loader = matterport_SemDataset33(cfg["data"], split=cfg["data"]["val_split"])
 
@@ -85,7 +82,6 @@ with torch.no_grad():
 
         semmap_pred, observed_mask  = model(rgb, observed_masks)
 
-
         if observed_masks.any():
 
             semmap_pred = semmap_pred.permute(0,2,3,1)
@@ -99,11 +95,9 @@ with torch.no_grad():
 
             assert gt.min() >= 0 and gt.max() < num_classes and semmap_pred.shape[3] == num_classes
             cm += np.bincount((gt * num_classes + pred).cpu().numpy(), minlength=num_classes**2)
-
             ############################################################################################################
 
             semmap_pred_write  = semmap_pred.data.max(-1)[1] + 1
-
             semmap_pred_write[~observed_mask] = 0
             semmap_pred_write = semmap_pred_write.squeeze(0)
 

@@ -1,6 +1,4 @@
 import datetime
-# from torchsummaryX import summary
-
 import os
 import yaml
 import time
@@ -18,7 +16,6 @@ from torch.optim.lr_scheduler import LambdaLR
 from torch.utils.data import DistributedSampler
 from model.dataloader_s2d3d.pano_data_loader import DatasetLoader_pano_detr
 
-# from model.trans4pano_map_new_decoder import Trans4map_segformer
 from model.BEV360_segformer_s2d3d import BEV360_segformer_s2d3d
 from model.BEV360_segnext_s2d3d import BEV360_segnext_s2d3d
 from model.loss import SemmapLoss
@@ -67,8 +64,7 @@ def train(rank, world_size, cfg):
         print('#Envs in train: %d' % (len(t_loader.files)))
         print('#Envs in val: %d' % (len(v_loader.files)))
 
-    #########################################################
-    ####################### To DO ###########################
+
     trainloader = data.DataLoader(
         t_loader,
         batch_size=cfg["training"]["batch_size"] // world_size,
@@ -91,7 +87,7 @@ def train(rank, world_size, cfg):
     #################################################### Setup Model ###################################################
     cfg_model = cfg['model']
     backbone = cfg_model['backbone']
-    print('backbone:', backbone)
+    # print('backbone:', backbone)
 
     if backbone == 'transformer':
         model = BEV360_segformer_s2d3d(cfg_model, device)
@@ -100,17 +96,11 @@ def train(rank, world_size, cfg):
 
     model = model.to(device)
 
-    # model = Trans4map_deformable_detr_plus(cfg['model'], device)
-    # summary(model, x = torch.zeros((1, 1, 3, 1024, 2048)), proj_indices=torch.zeros((1, 250000)), masks_inliers=torch.zeros((1, 1024, 2048)), rgb_no_norm=torch.zeros((1, 1024, 2048, 3)), map_mask=torch.zeros((1, 500, 500)), map_heights=torch.zeros((1, 500, 500)))
-
     if device.type == 'cuda':
         model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[rank], find_unused_parameters=True)
 
     model_parameters = filter(lambda p: p.requires_grad, model.parameters())
     params = sum([np.prod(p.size()) for p in model_parameters])
-    
-    # for parameter in model.parameters():
-    #     print("**:",  parameter.size())
 
     if rank == 0:
         print('# trainable parameters = ', params)
@@ -183,10 +173,9 @@ def train(rank, world_size, cfg):
             logger.info("Loading model and optimizer from checkpoint '{}'".format(cfg["training"]["load_model"]))
             print("Loading model and optimizer from checkpoint '{}'".format(cfg["training"]["load_model"]))
 
-    ########################################################################################################
+    ####################################################################################################################
     # start training Loop
     iter = start_iter
-    # torch.autograd.set_detect_anomaly(True)
 
     for epoch in range(start_epoch, cfg["training"]["train_epoch"], 1):
 
@@ -198,20 +187,13 @@ def train(rank, world_size, cfg):
             rgb, rgb_no_norm, masks_inliers, proj_indices, semmap_gt, rotationz ,map_mask, map_heights, fname = batch
             model.train()
             optimizer.zero_grad()
-            # print('rgb, proj_indices, masks_inliers:', rgb.shape, proj_indices.shape, masks_inliers.shape)
-            # print('rgb_no_norm:', rgb_no_norm.size())
-
-            # semmap_pred, observed_masks = model(rgb, proj_indices, masks_inliers, rgb_no_norm)
-            ## modelmodel
 
             semmap_pred, observed_masks = model(rgb, proj_indices, masks_inliers, rgb_no_norm, map_mask, map_heights)
             semmap_gt = semmap_gt.long()
 
-
             if observed_masks.any():
 
                 loss = loss_fn(semmap_gt.to(device), semmap_pred, observed_masks)
-                # with torch.autograd.detect_anomaly():
                 loss.backward()
 
                 optimizer.step()
@@ -223,7 +205,6 @@ def train(rank, world_size, cfg):
 
                 obj_gt = masked_semmap_gt.detach()
                 obj_pred = masked_semmap_pred.data.max(-1)[1].detach()
-                # print('obj_gt, obj_pred:', obj_gt.size(), obj_pred.size(), torch.unique(obj_gt), torch.unique(obj_pred))
 
                 obj_running_metrics.add(obj_pred, obj_gt)
 
@@ -273,7 +254,6 @@ def train(rank, world_size, cfg):
             for batch_val in valloader:
 
                 # rgb, rgb_no_norm, masks_inliers, proj_indices, semmap_gt, map_mask, map_heights  = batch_val
-                # semantic = semantic.squeeze(0).to(device)
                 rgb, rgb_no_norm, masks_inliers, proj_indices, semmap_gt, rotationz, map_mask, map_heights = batch_val
 
                 semmap_pred, observed_masks = model(rgb, proj_indices, masks_inliers, rgb_no_norm, map_mask, map_heights)
@@ -282,7 +262,6 @@ def train(rank, world_size, cfg):
                 if observed_masks.any():
                     loss_val = loss_fn(semmap_gt.to(device), semmap_pred, observed_masks)
 
-                    #####
                     semmap_pred = semmap_pred.permute(0, 2, 3, 1)
 
                     masked_semmap_gt = semmap_gt[observed_masks]
@@ -367,7 +346,6 @@ def train(rank, world_size, cfg):
 
         scheduler.step(epoch)
 
-
 ########################################################################################################################
 
 if __name__ == "__main__":
@@ -377,7 +355,7 @@ if __name__ == "__main__":
         "--config",
         nargs="?",
         type=str,
-        default="config/model_360BEV_s2d3d.yml",
+        default="configs/model_360BEV_s2d3d.yml",
         help="Configuration file to use",
     )
 

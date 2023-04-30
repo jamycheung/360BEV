@@ -2,11 +2,9 @@
 # ---------------------------------------------
 # Copyright (c) OpenMMLab. All rights reserved.
 # ---------------------------------------------
-#  Modified by Zhiqi Li
+#  Modified by Zhifeng Teng
 # ---------------------------------------------
 
-#from projects.mmdet3d_plugin.models.utils.bricks import run_time
-#from projects.mmdet3d_plugin.models.utils.visual import save_tensor
 from model.modules.point_sampling_panorama import point_sampling_pano
 from .custom_base_transformer_layer import MyCustomBaseTransformerLayer
 
@@ -31,8 +29,7 @@ ext_module = ext_loader.load_ext(
 
 @TRANSFORMER_LAYER_SEQUENCE.register_module()
 class BEVFormerEncoder_pano(TransformerLayerSequence):
-    #### BEVFormerEncoder 包含 BEVFormerLayer,继承类来自文件transformer.py
-    #### 主要任务产生reference points 和 query
+    ## BEVFormerEncoder includes BEVFormerLayer, which is an inherited class from the file transformer.py. The task is to generate reference points and queries.
     """
     Attention with both self and cross
     Implements the de(en)coder in DETR transformer.
@@ -51,31 +48,7 @@ class BEVFormerEncoder_pano(TransformerLayerSequence):
         self.num_points_in_pillar = num_points_in_pillar
         self.pc_range = pc_range
         self.fp16_enabled = False
-        # print('kwargs in BEVFormerEncoder:', kwargs.keys())
 
-    # @staticmethod
-    # def get_reference_points(H, W, map_heights, map_mask, bs=1, device='cuda', dtype=torch.float):
-    #
-    #     row_column_index = torch.where(map_mask == True)
-    #     # print('row_column_index:', row_column_index)
-    #     row = row_column_index[1]
-    #     column = row_column_index[2]
-    #
-    #     x_pos = row * 0.02 - 0.01 - 5
-    #     y_pos = (H - column) * 0.02 + 0.01 - 5
-    #     z_pos = map_heights[0, row, column] - 10.0
-    #
-    #     # print('position_haha:',map_heights, row.size(), z_pos.size(), map_heights.size())
-    #
-    #     real_position = torch.stack((x_pos, y_pos, z_pos), axis=1)
-    #     # print('real_position000:', real_position[200:250,:])
-    #
-    #
-    #     ref_3d = real_position.unsqueeze(0)
-    #     ref_3d = ref_3d.unsqueeze(0)
-    #     # print('real_position:', ref_3d.shape, real_position[:, 2].min(), real_position[:, 2].max(), real_position[:, 2])
-    #     # (1, 1, 32424, 3)
-    #     return ref_3d
     def get_reference_points(self, h, w):
         a_tensor = torch.linspace(0, 1, h)
         b_tensor = torch.linspace(0, 1, w)
@@ -126,37 +99,15 @@ class BEVFormerEncoder_pano(TransformerLayerSequence):
         output = bev_query
         intermediate = []
 
-        # ref_3d =  self.get_reference_points(bev_h, bev_w, map_heights, map_mask, bs=1, device='cuda', dtype=torch.float)
-        # reference_points_cam, bev_mask = point_sampling_pano(ref_3d, self.pc_range, kwargs['img_metas'], map_mask)
         ref_3d = None
         h, w = 256, 512
         reference_points_cam = self.get_reference_points(h, w)
-        # print('reference_points_cam:', reference_points_cam.size())
 
         bev_mask = None
 
-        # print('reference_points_cam:', reference_points_cam.size(), bev_mask.size())
-        #### 用reference point算出了reference_points_cam, bev_mask，结合pc_range, XYZ方向上的范围
-        ### torch.Size([1, 40000, 4, 2]) torch.Size([1, 40000, 4])
         ################################################################################################################
 
-
-        # bug: this code should be 'shift_ref_2d = ref_2d.clone()', we keep this bug for reproducing our results in paper.
-        # shift_ref_2d = ref_2d  # .clone()
-        # shift_ref_2d += shift[:, None, None, :]
-
-        # (num_query, bs, embed_dims) -> (bs, num_query, embed_dims)
-
-        # bev_pos = bev_pos.permute(1, 0, 2)
-        # print("bev_pos:", bev_query, bev_pos.size())   ### torch.Size([1, 256 * 512, 256])
-
-        # bs, len_bev, num_bev_level, _ = ref_2d.shape
-        # print('ref2d_bs：', bs, len_bev, num_bev_level)   ### torch.Size([1, 40000,1, 2])
-        # print('prev_bev:', prev_bev) ## None
-
-
         for lid, layer in enumerate(self.layers):
-            # print('layer:', layer) ### BEVFormerLayer as forward
 
             output = layer(
                 bev_query,
@@ -181,7 +132,6 @@ class BEVFormerEncoder_pano(TransformerLayerSequence):
 
         if self.return_intermediate:
             return torch.stack(intermediate)
-        # print("output in Encoder:", output.size())  ### torch.Size([1, 40000, 256])
         # del reference_points_cam, ref_3d
 
         return output
@@ -232,7 +182,6 @@ class BEVFormerLayer_pano(MyCustomBaseTransformerLayer):
         assert len(operation_order) == 4
         # assert set(operation_order) == set(['self_attn', 'norm', 'cross_attn', 'ffn'])
         assert set(operation_order) == set(['norm', 'cross_attn', 'ffn'])
-        # print('kwargs_in BEVFormerLayer:', kwargs)    ## dict_keys('img_metas')
 
 
     def forward(self,
@@ -285,57 +234,28 @@ class BEVFormerLayer_pano(MyCustomBaseTransformerLayer):
         Returns:
             Tensor: forwarded results with shape [num_queries, bs, embed_dims].
         """
-        ### print('query_pos:', query_pos, 'key_pos:', key_pos)
-        ### 至少在 BEVFormerLayer 里，query_pos和 key_pos并没有被输入 None
-
-        # print('kwargs_in BEVFormerLayer_forward2:', kwargs.keys())
 
         norm_index = 0
         attn_index = 0
         ffn_index = 0
 
-        # print('bev_pos_in_BEVFormerLayer:', bev_pos)
-
         identity = query
 
-
-        # print('operation_order:', self.operation_order)
         ### operation_order: ('cross_attn', 'norm', 'ffn', 'norm')
 
         for layer in self.operation_order:
             # temporal self attention
             if layer == 'self_attn':
-
                 print("self_attn_index:", self.attentions[attn_index])
 
-                # query = self.attentions[attn_index](
-                #     query,
-                #     prev_bev,
-                #     prev_bev,
-                #     identity if self.pre_norm else None,
-                #     query_pos=bev_pos,
-                #     key_pos=bev_pos,
-                #     attn_mask=attn_masks[attn_index],
-                #     key_padding_mask=query_key_padding_mask,
-                #     reference_points=ref_2d,
-                #     spatial_shapes=torch.tensor(
-                #         [[bev_h, bev_w]], device=query.device),
-                #     level_start_index=torch.tensor([0], device=query.device),
-                #     **kwargs)
-                # attn_index += 1
-                # identity = query
 
             elif layer == 'norm':
 
                 query = self.norms[norm_index](query)
-                # print('query_in_norm:', query.size())
                 norm_index += 1
 
             # spaital cross attention
             elif layer == 'cross_attn':
-                # print("cross_attn_index:", self.attentions[attn_index])
-                # print('query_pos:', bev_pos.size(), value.size(), query.size())
-
 
                 query = self.attentions[attn_index](
                     query,
@@ -354,19 +274,15 @@ class BEVFormerLayer_pano(MyCustomBaseTransformerLayer):
                     level_start_index=level_start_index,
                     **kwargs
                 )
-                # print('after_cross_attention:', query.size())
 
                 attn_index += 1
                 identity = query
 
             elif layer == 'ffn':
 
-                # print("ffn_index:", ffn_index)  ### ffn_index: 0
-
                 query = self.ffns[ffn_index](
                     query, identity if self.pre_norm else None)
 
-                # print('query_in_ffn:', query.size())
                 ffn_index += 1
 
         return query

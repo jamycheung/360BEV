@@ -1,5 +1,4 @@
 import datetime
-# from torchsummaryX import summary
 import os
 import yaml
 import time
@@ -16,11 +15,12 @@ from tensorboardX import SummaryWriter
 from torch.optim.lr_scheduler import LambdaLR
 from torch.utils.data import DistributedSampler
 from utils.lib2_mp3d.dataset import matterport_SemDataset33
-# from utils.lib2_mp3d.dataset import S2d3dSemDataset
 
+# from utils.lib2_mp3d.dataset import S2d3dSemDataset
 # from model.trans4pano_map_new_decoder import Trans4map_segformer
 # from model.trans4pano_deformable_detr import Trans4map_deformable_detr
-from model.Attention360_pano_matterport import Trans4pano_segformer
+
+from model.Attention360_pano_matterport import Attention360_pano
 
 from model.loss import SemmapLoss
 from metric import averageMeter
@@ -58,7 +58,6 @@ def train(rank, world_size, cfg):
 
         print('**log_dir:', cfg["logdir"])
         logger.info("Let Trans4Map training begin !!")
-
 
     dateset_dataset = "matterport"
 
@@ -101,7 +100,7 @@ def train(rank, world_size, cfg):
     #################################################### Setup Model #################################################################################
 
     # model = Trans4map_deformable_detr(cfg['model'], device) # baseline
-    model = Trans4pano_segformer(cfg['model'], device) # 360 Attnetion
+    model = Attention360_pano(cfg['model'], device) # 360 Attnetion
 
     model = model.to(device)
 
@@ -195,31 +194,20 @@ def train(rank, world_size, cfg):
             iter += 1
             start_ts = time.time()
             rgb, semmap_gt, fname= batch
-            # print('batch_batch:', rgb.size(), semmap_gt.size())
 
             observed_masks = (semmap_gt >= 0) 
             semmap_gt[~observed_masks] = 0
             model.train()
             optimizer.zero_grad()
 
-            # print('rgb, proj_indices, masks_inliers:', rgb.shape, proj_indices.shape, masks_inliers.shape)
-            # print('rgb_no_norm:', rgb_no_norm.size())
-            # semmap_pred, observed_masks = model(rgb, proj_indices, masks_inliers, rgb_no_norm)
-            ## modelmodel
-
             # semmap_pred, observed_masks = model(rgb, proj_indices, masks_inliers, rgb_no_norm, map_mask, map_heights)
             semmap_pred, observed_mask  = model(rgb, observed_masks)
-
-            # print('semmap_pred:', semmap_pred.size(), observed_mask.dtype)
-
             semmap_gt = semmap_gt.long()
-            # print('**semmap_pred:', torch.unique(semmap_pred), semmap_gt.device,  observed_masks.device)
 
             if observed_masks.any():
             # if True:
                 loss = loss_fn(semmap_gt.to(device), semmap_pred, observed_mask)
 
-                # with torch.autograd.detect_anomaly():
                 loss.backward()
                 optimizer.step()
 
@@ -231,7 +219,6 @@ def train(rank, world_size, cfg):
 
                 obj_gt = masked_semmap_gt.detach()
                 obj_pred = masked_semmap_pred.data.max(-1)[1].detach()
-                # print('obj_gt, obj_pred:', obj_gt.size(), obj_pred.size(), torch.unique(obj_gt), torch.unique(obj_pred))
 
                 obj_running_metrics.add(obj_pred, obj_gt)
 
@@ -280,23 +267,12 @@ def train(rank, world_size, cfg):
         with torch.no_grad():
             for batch_val in valloader:
 
-                # rgb, rgb_no_norm, masks_inliers, proj_indices, semmap_gt, map_mask, map_heights  = batch_val
-                # semantic = semantic.squeeze(0).to(device)
-
                 rgb, semmap_gt, fname= batch_val
                 
                 observed_masks = (semmap_gt >= 0) 
                 semmap_gt[~observed_masks] = 0
-                # print('batch_size:', rgb.size(),  semmap_gt.size(), fname, torch.unique(semmap_gt), observed_masks.size())
-                
 
                 semmap_pred, observed_mask  = model(rgb, observed_masks)
-
-
-
-                # semmap_pred, observed_masks = model(rgb, proj_indices, masks_inliers, rgb_no_norm, map_mask, map_heights)
-                # semmap_pred, observed_masks = model(rgb)
-
                 semmap_gt = semmap_gt.long()
 
                 if observed_masks.any():
@@ -388,7 +364,6 @@ def train(rank, world_size, cfg):
         obj_running_metrics.reset()
 
         scheduler.step(epoch)
-
 
 ##################################################################################################################################################
 

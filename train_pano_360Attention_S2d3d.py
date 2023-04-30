@@ -16,8 +16,8 @@ from tensorboardX import SummaryWriter
 from torch.optim.lr_scheduler import LambdaLR
 from torch.utils.data import DistributedSampler
 
-from utils.lib2.dataset.dataset_matterport_sem_class20 import matterport_SemDataset33
-from utils.lib2.dataset.dataset_s2d3d_sem_class13 import S2d3dSemDataset
+from utils.lib2_s2d3d.dataset.dataset_matterport_sem_class20 import matterport_SemDataset33
+from utils.lib2_mp3d.dataset.dataset_s2d3d_sem_class13 import S2d3dSemDataset
 
 # from model.trans4pano_map_new_decoder import Trans4map_segformer
 # from model.trans4pano_deformable_detr import Trans4map_deformable_detr
@@ -27,7 +27,6 @@ from model.loss import SemmapLoss
 from metric import averageMeter
 from metric.iou import IoU
 from model.utils import get_logger
-
 
 def train(rank, world_size, cfg):
     # Setup seeds
@@ -195,25 +194,14 @@ def train(rank, world_size, cfg):
             iter += 1
             start_ts = time.time()
             rgb, semmap_gt, fname= batch
-            # print('semmap_gt:', torch.unique(semmap_gt))
-            # print('batch_batch:', rgb.size(), semmap_gt.size())
 
             observed_masks = (semmap_gt >= 0) 
             semmap_gt[~observed_masks] = 0
 
             model.train()
             optimizer.zero_grad()
-
-            # semmap_pred, observed_masks = model(rgb, proj_indices, masks_inliers, rgb_no_norm)
-            ## modelmodel
-
-            # semmap_pred, observed_masks = model(rgb, proj_indices, masks_inliers, rgb_no_norm, map_mask, map_heights)
             semmap_pred, observed_mask  = model(rgb, observed_masks)
-
-            # print('semmap_pred:', semmap_pred.size(), observed_mask.dtype)
-
             semmap_gt = semmap_gt.long()
-            # print('**semmap_pred:', torch.unique(semmap_pred), semmap_gt.device,  observed_masks.device)
 
             if observed_masks.any():
             # if True:
@@ -228,8 +216,6 @@ def train(rank, world_size, cfg):
 
                 obj_gt = masked_semmap_gt.detach()
                 obj_pred = masked_semmap_pred.data.max(-1)[1].detach()
-                # print('obj_gt, obj_pred:', obj_gt.size(), obj_pred.size(), torch.unique(obj_gt), torch.unique(obj_pred))
-
                 obj_running_metrics.add(obj_pred, obj_gt)
 
             time_meter.update(time.time() - start_ts)

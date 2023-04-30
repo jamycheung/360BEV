@@ -1,9 +1,9 @@
-
 # ---------------------------------------------
 # Copyright (c) OpenMMLab. All rights reserved.
 # ---------------------------------------------
 #  Modified by Zhifeng Teng
 # ---------------------------------------------
+
 import numpy as np
 from mmcv.ops.multi_scale_deform_attn import multi_scale_deformable_attn_pytorch
 import warnings
@@ -22,9 +22,7 @@ from mmcv.runner.base_module import BaseModule, ModuleList, Sequential
 
 from mmcv.utils import ext_loader
 from .multi_scale_deformable_attn_function import MultiScaleDeformableAttnFunction_fp32, MultiScaleDeformableAttnFunction_fp16
-# from multi_scale_deformable_attn_function import MultiScaleDeformableAttnFunction_fp32, \
-#     MultiScaleDeformableAttnFunction_fp16
-# from projects.mmdet3d_plugin.models.utils.bricks import run_time
+
 ext_module = ext_loader.load_ext(
     '_ext', ['ms_deform_attn_backward', 'ms_deform_attn_forward'])
 
@@ -68,7 +66,6 @@ class SpatialCrossAttention(BaseModule):
         self.output_proj = nn.Linear(embed_dims, embed_dims)
         self.batch_first = batch_first
         self.init_weight()
-        # print('init_weight:', self.init_weight()) ### None
 
     def init_weight(self):
         """Default initialization for Parameters of Module."""
@@ -150,7 +147,6 @@ class SpatialCrossAttention(BaseModule):
                 reference_points_rebatch = reference_points_cam
 
         num_cams, l, bs, embed_dims = key.shape
-        # print('key_shape:', key.shape)   ### torch.Size([1, 174080, 1, 128])
 
         key = key.permute(2, 0, 1, 3).reshape(
             bs * self.num_cams, l, self.embed_dims)
@@ -161,19 +157,15 @@ class SpatialCrossAttention(BaseModule):
                                     reference_points=reference_points_rebatch.view(bs*self.num_cams, max_len, D, 2), spatial_shapes=spatial_shapes,
                                     level_start_index=level_start_index).view(bs, self.num_cams, max_len, self.embed_dims)
 
-
         ############################################################################################################################
-        # #### 替换这个slots把他变成对号入座！
+        # #### change slots
         row_column_index = torch.where(bev_mask == True)
         row = row_column_index[1]
         column = row_column_index[2]
-        # print('row_column:', row.size(), column.size())        
 
         slots_mask = slots.reshape(1, 500, 500, self.embed_dims)
 
         slots_mask[0, row, column, :] = queries[0,0,:,:]
-
-        # print('slots_mask:', slots_mask.size(), slots_mask.device)
 
         slots = slots_mask.flatten(1,2)
         slots = self.output_proj(slots)
@@ -247,7 +239,6 @@ class MSDeformableAttention3D(BaseModule):
         self.num_heads = num_heads   # 4
 
         self.num_points = num_points # 2
-        # print('self.num_levels:', self.num_levels, num_levels, self.num_heads, self.num_points)
 
         self.sampling_offsets_th = sampling_offsets_th
         self.sampling_offsets = nn.Linear(embed_dims, self.num_heads * self.num_levels * self.num_points * 2)

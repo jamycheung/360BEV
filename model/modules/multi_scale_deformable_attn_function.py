@@ -1,7 +1,7 @@
 # ---------------------------------------------
 # Copyright (c) OpenMMLab. All rights reserved.
 # ---------------------------------------------
-#  Modified by Zhiqi Li
+#  Modified by Zhifeng Teng
 # ---------------------------------------------
 
 import torch
@@ -9,8 +9,6 @@ from torch.cuda.amp import custom_bwd, custom_fwd
 from torch.autograd.function import Function, once_differentiable
 from mmcv.utils import ext_loader
 ext_module = ext_loader.load_ext('_ext', ['ms_deform_attn_backward', 'ms_deform_attn_forward'])
-
-
 
 class MultiScaleDeformableAttnFunction_fp16(Function):
 
@@ -116,9 +114,7 @@ class MultiScaleDeformableAttnFunction_fp32(Function):
         """
 
         ctx.im2col_step = im2col_step
-        # print('im2col_step:', im2col_step)
         # im2col_step: 64
-        ### print('arguments_type_debug:', type(value), type(value_spatial_shapes), type(value_level_start_index), type(sampling_locations), type(attention_weights), type(im2col_step))
 
         output = ext_module.ms_deform_attn_forward(
             value,
@@ -130,8 +126,6 @@ class MultiScaleDeformableAttnFunction_fp32(Function):
         ctx.save_for_backward(value, value_spatial_shapes,
                               value_level_start_index, sampling_locations,
                               attention_weights)
-        # print('output_in_multi:', sampling_locations.size(), output.size())
-        ### torch.Size([1, 20000, 8, 4, 8, 2]) torch.Size([1, 20000, 256])
         return output
 
     @staticmethod

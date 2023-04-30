@@ -1,4 +1,4 @@
-name_experiment: pano_deformable_detr
+name_experiment: 360Mapper_mp3d
 model:
     arch: 360Mapper
     backbone: segnext
@@ -16,7 +16,6 @@ model:
     batch_size_every_processer: 1
     backbone_config:
       { 'type': 'EncoderDecoder',
-        # 'pretrained': None,
         'backbone': { 'type': 'MSCAN',
                       'embed_dims': [ 64, 128, 320, 512 ],
                       'mlp_ratios': [ 8, 8, 4, 4 ],
@@ -41,7 +40,6 @@ model:
                          'loss_decode': { 'type': 'CrossEntropyLoss',
                                           'use_sigmoid': False,
                                           'loss_weight': 1.0 } },
-        # 'train_cfg': None, 'test_cfg': {'mode': 'whole'}
       }
 
     360Attention_cfg:
@@ -56,7 +54,6 @@ model:
                                'feedforward_channels': 128,
                                'ffn_dropout': 0.1,
                                'operation_order': ['cross_attn', 'norm', 'ffn', 'norm'],
-          # 'operation_order': ('cross_attn', 'ffn', 'norm')
         }
       }
 
@@ -64,8 +61,8 @@ data:
     train_split: train
     val_split: val
     test_split: test
-    # root: /hkfs/work/workspace/scratch/tp9819-trans4map/dataset_zteng/trans4map_baseline
-    root: /cvhci/data/VisLoc/zteng/trans4map_baseline
+
+    root:   # Pls enter the address of the dataset here.
 
     ego_downsample: False
     feature_type: lastlayer
@@ -77,15 +74,12 @@ training:
     print_interval: 10
     optimizer:
         lr:  0.00006
-        # lr:  0.00006
         betas: [0.9, 0.999]
         weight_decay: 0.01
     scheduler:
         lr_decay_rate: 0.7
         lr_epoch_per_decay: 10
-    resume: #runs/gru_fullrez_lastlayer_m256/fuse/smnet_mp3d_best_model.pkl
-    load_model: #runs/gru_fullrez_lastlayer_m256/54731/smnet_mp3d_best_model.pkl
 
-model_path: ./checkpoints/2023-02-24-00-10/ckpt_model.pkl
-output_dir: ./test_result/detr_with_segformer/2023-04-10/
-seed: 9876
+model_path:    # Your path to pre-trained model weights    # segnext b2
+# model_path:  # Your path to pre-trained model weights    # segformer b2
+output_dir:    # /your_path_to_output/

@@ -8,6 +8,7 @@ from pathlib import Path
 
 # from model.front_view_segformer import front_view_segformer
 from model.Attention360_pano_s2d3d import Attention360_pano_s2d3d
+
 from utils.semantic_utils import color_label
 from utils.lib2_s2d3d.dataset.dataset_s2d3d_sem_class13 import S2d3dSemDataset
 
@@ -24,18 +25,15 @@ config_path = "configs/model_fv_s2d3d.yml"
 
 with open(config_path) as fp:
     cfg = yaml.safe_load(fp)
-
 ########################################################################################################################
 output_dir = cfg['output_dir']
 Path(output_dir).mkdir(parents=True, exist_ok=True)
 
 cfg_model = cfg['model']
 # backbone = cfg_model['backbone']
-# print('backbone:', backbone)
 num_classes = cfg_model['n_obj_classes']
 
-
-####### init model
+####### init model ######
 model = Attention360_pano_s2d3d(cfg_model, device)  ## for 360Attention test
 # model = front_view_segformer(cfg_model, device)  ## for tras4pass test
 model = model.to(device)
@@ -90,12 +88,10 @@ with torch.no_grad():
         if observed_masks.any():
 
             semmap_pred = semmap_pred.permute(0,2,3,1)
-
             ############################################################################################################
             pred = semmap_pred[observed_masks].softmax(-1)
             pred = torch.argmax(pred, dim = 1).cpu()
 
-            # num_classes = 13
             gt = semmap_gt[observed_masks]
 
             assert gt.min() >= 0 and gt.max() < num_classes and semmap_pred.shape[3] == num_classes
@@ -103,7 +99,6 @@ with torch.no_grad():
 
             ############################################################################################################
             semmap_pred_write  = semmap_pred.data.max(-1)[1] + 1
-
             semmap_pred_write[~observed_mask] = 0
             semmap_pred_write = semmap_pred_write.squeeze(0)
 
@@ -120,7 +115,6 @@ with torch.no_grad():
             file_name = fname[0]
             #####################################################################################
             ###############################semmap projection mask to show #######################
-            #################################### RGB_To_Show ###########################################################
             masked_semmap_gt = semmap_gt[observed_masks]
             masked_semmap_pred = semmap_pred[observed_masks]
 
@@ -145,10 +139,9 @@ print("val -- mPrecision: {}".format(mPrecision))
 print("val -- Overall_Acc: {}".format(acc))
 
 #########################################################################################################################################
-## Summarize_haha
+## Summarize
 print('  Summarize_hohonet  '.center(50, '='))
 cm = cm.reshape(num_classes, num_classes)
-# id2class = np.array(valid_dataset.ID2CLASS)
 id2class = ['beam', 'board', 'bookcase', 'ceiling', 'chair', 'clutter', 'column', 'door', 'floor', 'sofa', 'table', 'wall', 'window']
 id2class = np.array(id2class)
 

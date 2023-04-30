@@ -24,7 +24,7 @@ from model.BEV360_segnext_matterport import BEV360_segnext
 from model.loss import SemmapLoss
 from metric import averageMeter
 from metric.iou import IoU
-from model.other_models.utils import get_logger
+from model.utils import get_logger
 
 def train(rank, world_size, cfg):
     # Setup seeds
@@ -68,8 +68,7 @@ def train(rank, world_size, cfg):
         print('#Envs in train: %d' % (len(t_loader.files)))
         print('#Envs in val: %d' % (len(v_loader.files)))
 
-    #########################################################
-    ####################### To DO ###########################
+
     trainloader = data.DataLoader(
         t_loader,
         batch_size=cfg["training"]["batch_size"] // world_size,
@@ -178,7 +177,7 @@ def train(rank, world_size, cfg):
             logger.info("Loading model and optimizer from checkpoint '{}'".format(cfg["training"]["load_model"]))
             print("Loading model and optimizer from checkpoint '{}'".format(cfg["training"]["load_model"]))
 
-    ########################################################################################################
+    ####################################################################################################################
     # start training Loop
     iter = start_iter
 
@@ -264,8 +263,6 @@ def train(rank, world_size, cfg):
             for batch_val in valloader:
 
                 rgb, rgb_no_norm, masks_inliers, proj_indices, semmap_gt, map_mask, map_heights  = batch_val
-                # semantic = semantic.squeeze(0).to(device)
-
 
                 semmap_pred, observed_masks = model(rgb, proj_indices, masks_inliers, rgb_no_norm, map_mask, map_heights)
                 semmap_gt = semmap_gt.long()
@@ -273,7 +270,6 @@ def train(rank, world_size, cfg):
                 if observed_masks.any():
                     loss_val = loss_fn(semmap_gt.to(device), semmap_pred, observed_masks)
 
-                    #####
                     semmap_pred = semmap_pred.permute(0, 2, 3, 1)
 
                     masked_semmap_gt = semmap_gt[observed_masks]

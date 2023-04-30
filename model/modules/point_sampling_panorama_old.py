@@ -39,7 +39,6 @@ def get_cam_reference_coordinate(reference_points, height, width):
 
     Phi_1 =  torch.atan2(yss, xss)
     # Phi_2 = torch.arctan(yss/xss)
-    # print('Phi_1:', Phi_1.max(), Phi_1.min())
     Theta_1 = torch.arctan( xss/zss * 1/torch.cos(Phi_1))
 
     depth = zss/torch.cos(Theta_1)
@@ -52,8 +51,6 @@ def get_cam_reference_coordinate(reference_points, height, width):
 
     Theta = Theta.cpu()
     Phi = Phi.cpu()
-
-    # h, w = 1024, 2048
     h,w = height, width
 
     height_num = h * Theta / np.pi

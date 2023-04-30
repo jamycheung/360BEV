@@ -11,25 +11,21 @@ from utils.semantic_utils import color_label
 
 # from model.trans4pano_map import Trans4map_segformer
 # from model.trans4pano_deformable_detr import Trans4map_deformable_detr
+
 from model.BEV360_segformer_s2d3d import BEV360_segformer_s2d3d
 from model.BEV360_segnext_s2d3d import BEV360_segnext_s2d3d
-
-###!!!
-# from model.pano_data_loader_show import DatasetLoader_pano_show
-# from model.pano_data_loader_show import DatasetLoader_pano_detr
 from model.dataloader_s2d3d.pano_data_loader import DatasetLoader_pano_detr
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+########################################################################################################################
 # model_path = "./checkpoints/pano_deformable_detr_plus/2023-02-23-16-14/ckpt_model.pkl"  # 360Attention
 # model_path = "./checkpoints/pano_top_down_mapping/3078/ckpt_model.pkl"  # baseline trans4map
-
 ########################################################################################################################
 config_path = "configs/model_360BEV_s2d3d.yml"
 
 with open(config_path) as fp:
     cfg = yaml.safe_load(fp)
-
 ########################################################################################################################
 output_dir = cfg['output_dir']
 Path(output_dir).mkdir(parents=True, exist_ok=True)
@@ -38,7 +34,6 @@ cfg_model = cfg['model']
 backbone = cfg_model['backbone']
 print('backbone:', backbone)
 num_classes = cfg_model['n_obj_classes']
-
 
 if backbone == 'transformer':
     model = BEV360_segformer_s2d3d(cfg_model, device)
@@ -96,23 +91,20 @@ with torch.no_grad():
         if observed_masks.any():
             semmap_pred = semmap_pred.permute(0, 2, 3, 1)
 
-            ###################################################################################################################################
+            ############################################################################################################
             pred = semmap_pred[observed_masks].softmax(-1)
             pred = torch.argmax(pred, dim=1).cpu()
             pred = pred
 
-            # num_classes = 14
             gt = semmap_gt[observed_masks]
 
             assert gt.min() >= 0 and gt.max() < num_classes and semmap_pred.shape[3] == num_classes
             cm += np.bincount((gt * num_classes + pred).cpu().numpy(), minlength=num_classes ** 2)
-
-            ###################################################################################################################################
+            ############################################################################################################
 
             semmap_pred_write = semmap_pred.data.max(-1)[1]
             semmap_mask_write22 = semmap_pred_write
 
-            # semmap_pred_write = semmap_pred_write.squeeze(0)
             semmap_pred_write[~observed_masks] = 0
             semmap_pred_write = semmap_pred_write.squeeze(0)
 
@@ -125,10 +117,6 @@ with torch.no_grad():
 
             # ####################################################################################
             # ###############################semmap projection mask to show #######################
-            #################################### RGB_To_Show ################################################
-            #
-            # output_name = os.path.join(output_dir, file_name)
-            # cv2.imwrite(output_name, semmap_gt_write_out)
 
             masked_semmap_gt = semmap_gt[observed_masks]
             masked_semmap_pred = semmap_pred[observed_masks]
@@ -154,7 +142,7 @@ print("val -- mRecall: {}".format(mRecall))
 print("val -- mPrecision: {}".format(mPrecision))
 print("val -- Overall_Acc: {}".format(acc))
 
-#########################################################################################################################################
+########################################################################################################################
 ## Summarize_haha
 print('  Summarize_hohonet  '.center(50, '='))
 cm = cm.reshape(num_classes, num_classes)

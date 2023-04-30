@@ -6,17 +6,12 @@ import numpy as np
 import torchvision.transforms as transforms
 from Backbone.segformer import Segformer
 from Backbone.segformer import mit_b0_kd, mit_b1_kd, mit_b4_kd
-from Backbone.resnet_mmcv import ResNet
-import random
-from pathlib import Path
-import os
 
-from imageio import imwrite
-import matplotlib.pyplot as plt
+
 from mmcv.cnn.bricks.transformer import build_transformer_layer_sequence
-from mmdet.models.necks import FPN
 from mmcv.cnn.bricks.transformer import build_positional_encoding
-from model.modules.point_sampling_panorama_oldold import get_bev_features
+# from model.modules.point_sampling_panorama_oldold import get_bev_features
+from model.modules.point_sampling_panorama_old import get_bev_features
 from mmcv.cnn.bricks import transformer
 
 
@@ -24,25 +19,19 @@ class BEV360_segformer_s2d3d(nn.Module):
     def __init__(self, cfg, device):
         super(BEV360_segformer_s2d3d, self).__init__()
 
-        # self.backbone = cfg['backbone']
         self.backbone_size = cfg['backbone_size']
         self.image_shape = cfg['img_shape']
 
-        # ego_feat_dim = cfg['ego_feature_dim']
-        # mem_feat_dim = cfg['mem_feature_dim']
         n_obj_classes = cfg['n_obj_classes']
-
         self.encoder_cfg = cfg['360Attebtion_cfg']
 
         # self.mem_feat_dim = mem_feat_dim
         # self.mem_update = mem_update
         # self.ego_downsample = ego_downsample
         self.device = device
-        self.device_mem = device  # cpu
-        # self.device_mem = torch.device('cuda')  # cpu
+        self.device_mem = device  # gpu
 
         ################################################################################################################
-        #### 新增 encoding 初始化！
 
         self.bev_h = cfg['bev_h']
         self.bev_w = cfg['bev_w']
@@ -50,18 +39,9 @@ class BEV360_segformer_s2d3d(nn.Module):
         self.bs = cfg['batch_size_every_processer']
         segformer_size = cfg['backbone_size']
 
-        # self.num_head = cfg["num_head"]
-        # self.num_point = cfg["num_point"]
-        # self.sampling_offsets = cfg['sampling_offsets']
-
         self.map_width = self.bev_w
         dtype = torch.float32
 
-
-        # self.bev_bev_embedding = nn.Embedding(self.bev_h * self.bev_w, self.embed_dims)
-        # bev_bev_embedding = nn.Embedding(self.bev_h * self.bev_w, self.embed_dims)
-
-        # self.bev_queries = bev_bev_embedding.weight.to(dtype)
         self.bev_queries = torch.zeros(self.bev_h * self.bev_w, self.embed_dims)
 
         positional_encoding = dict(type='SinePositionalEncoding',
@@ -73,7 +53,6 @@ class BEV360_segformer_s2d3d(nn.Module):
         self.bev_mask = torch.zeros((self.bs, 256, 512)).to(dtype)
         ### change to pano_pos
         self.bev_pos = positional_encoding_bev(self.bev_mask).to(dtype)
-
 
         ################################################################################################################
         ### Backbone
@@ -100,11 +79,10 @@ class BEV360_segformer_s2d3d(nn.Module):
         state = torch.load(self.pretrained_model_path)
         weights = {}
         for k, v in state.items():
-            # print('key_:', k)
             weights[k] = v
 
         self.encoder_backbone.load_state_dict(weights, strict=False)
-        self.linear_fuse = nn.Conv2d(64, self.embed_dims, 1)  # 64
+        self.linear_fuse = nn.Conv2d(64, self.embed_dims, 1)
 
         ################################################################################################################
         self.encoder = build_transformer_layer_sequence(self.encoder_cfg)
@@ -129,11 +107,8 @@ class BEV360_segformer_s2d3d(nn.Module):
         ################################################################################################################
 
         mask_inliers = masks_inliers[:, :, :]                  # torch.Size([1, 128, 256])
-
         proj_index = proj_indices                               # torch.Size([1, 250000])
-        #### how to fill these TO DO!
 
-        # m = (proj_index >= 0)  # -- (N, 500*500)
         threshold_index_m = torch.max(proj_index).item()
         m = (proj_index < threshold_index_m)
 
@@ -148,7 +123,6 @@ class BEV360_segformer_s2d3d(nn.Module):
 
             tmp_top_down_mask = m.view(-1)         # torch.Size([250000])
 
-
             ############################################################################################################
             observed_masks += m.reshape(self.bs, self.bev_w, self.bev_h)   # torch.Size([1, 500, 500])
 
@@ -160,38 +134,22 @@ class BEV360_segformer_s2d3d(nn.Module):
         # rgb_features = rgb
         rgb_features = torch.nn.functional.interpolate(rgb, size=(512, 1024), mode = 'bilinear', align_corners=None)
         
-        #rgb_features = rgb_features.squeeze(0)
+        # rgb_features = rgb_features.squeeze(0)
         rgb_features = rgb_features.unsqueeze(0)
-
 
         # features = self.encoder(rgb_features)
         ml_feat = self.encoder_backbone(rgb_features, is_feat=False)
-
         ml_feat = self.linear_fuse(ml_feat)
 
         feat_fpn = [ml_feat]
-        ##################################################################################################################################
-        # in_channels = [256, 512, 1024, 2048]
-        # fpn_mmdet = FPN(in_channels, 256, len(in_channels)).eval()
-        # fpn_mmdet = fpn_mmdet.to(device = "cuda")
-        # feat_fpn = fpn_mmdet(ml_feat)
-        ##################################################################################################################################
-
+        ################################################################################################################
 
         bev_queries, feat_flatten, bev_h, bev_w, bev_pos, spatial_shapes, level_start_index = get_bev_features(
             feat_fpn, self.bev_queries, self.bev_h, self.bev_w, self.bev_pos)
 
-
         prev_bev = None
         shift = None
 
-        # kwargs = {'img_metas': [{
-        #     'img_shape': [(1024, 2048, 3)],
-        #                         }],
-        #     'num_point': self.num_point,
-        #     'num_head': self.num_head,
-        #     'sampling_offsets': self.sampling_offsets
-        #          }
 
         observed_masks = self.mask_update(
                                             proj_indices,

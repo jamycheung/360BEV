@@ -51,7 +51,6 @@ def get_cam_reference_coordinate(reference_points, height, width):
     Theta = Theta.cpu()
     Phi = Phi.cpu()
 
-    # h, w = 1024, 2048
     h,w = height, width
 
     height_num = h * Theta / np.pi
@@ -147,6 +146,6 @@ def get_bev_features(
 
     level_start_index = torch.cat((spatial_shapes.new_zeros((1,)), spatial_shapes.prod(1).cumsum(0)[:-1]))
 
-    feat_flatten = feat_flatten.permute(0, 2, 1, 3)  # (num_cam, H*W, bs, embed_dims) (6, 30825, 1, 256)
+    feat_flatten = feat_flatten.permute(0, 2, 1, 3)
 
     return bev_queries, feat_flatten, bev_h, bev_w, bev_pos, spatial_shapes, level_start_index

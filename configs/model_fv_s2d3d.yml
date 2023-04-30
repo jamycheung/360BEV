@@ -1,4 +1,4 @@
-name_experiment: model_pano_segformer
+name_experiment: model_pano_segformer_s2d3d
 model:
     arch: 360Attention
     backbone: transformer
@@ -8,14 +8,8 @@ model:
     ego_feature_dim: 64
     # mem_feature_dim: 64
     mem_feature_dim: 128
-    # mem_update: replace
-    # ego_downsample: False
     pano_h: 512
     pano_w: 1024
-    batch_size_every_processer: 1
-    num_head: 4
-    num_point: 4
-    sampling_offsets: 1
     360Attebtion_cfg:
             {'type': 'BEVFormerEncoder_pano',
             'num_layers': 2,
@@ -28,7 +22,6 @@ model:
                                    'feedforward_channels': 128,
                                    'ffn_dropout': 0.1,
                                    'operation_order': ['cross_attn', 'norm', 'ffn', 'norm'],
-              # 'operation_order': ('cross_attn', 'ffn', 'norm')
                                  }
             }
 
@@ -40,14 +33,7 @@ data:
     # train_split: 3_train
     # val_split: 3_val
 
-    # test_split: test
-    # root: /hkfs/work/workspace/scratch/tp9819-trans4map/dataset_zteng/trans4map_baseline
-    # root: /hkfs/work/workspace/scratch/tp9819-ws/datasets_zteng/hoho_data
-    # root: /hkfs/work/workspace/scratch/tp9819-ws/datasets_zteng/stanford2d3d_pano/s2d3d_semantic
-    # root: /cvhci/data/VisLoc/zteng/trans4map_baseline
-    root: /cvhci/temp/zteng/s2d3d_semantic
-    # ego_downsample: False
-    feature_type: lastlayer
+    root:  # Pls enter the address of the dataset here.
 
 training:
     train_epoch: 100
@@ -56,18 +42,13 @@ training:
     print_interval: 10
     optimizer:
         lr:  0.00006
-        # lr:  0.00006
         betas: [0.9, 0.999]
         weight_decay: 0.001
     scheduler:
         lr_decay_rate: 0.8
         lr_epoch_per_decay: 20
-    resume: #runs/gru_fullrez_lastlayer_m256/fuse/smnet_mp3d_best_model.pkl
-    load_model: #runs/gru_fullrez_lastlayer_m256/54731/smnet_mp3d_best_model.pkl
 
-# model_path: ./checkpoints/model_pano_segformer/2023-03-07-22-45/ckpt_model.pkl  # 3-fold
-# model_path: ./checkpoints/model_pano_segformer/2023-03-07-16-55/ckpt_model.pkl  # 2-fold
-model_path: ./checkpoints/model_pano_segformer2/2023-03-06-22-16/ckpt_model.pkl  # 1-fold
-
-output_dir: ./test_result/segformer_panoramic/fold_1/
-seed: 9876
+# model_path: # Your path to pre-trained model weights  # 3-fold
+# model_path: # Your path to pre-trained model weights  # 2-fold
+model_path:   # Your path to pre-trained model weights  # 1-fold
+output_dir:   # /your_path_to_output/

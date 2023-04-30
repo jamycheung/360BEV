@@ -6,7 +6,6 @@
 
 import copy
 import warnings
-
 import torch
 import torch.nn as nn
 
@@ -101,7 +100,6 @@ class MyCustomBaseTransformerLayer(BaseModule):
             ### ffn_cfgs['feedforward_channels'] = 512
 
         super(MyCustomBaseTransformerLayer, self).__init__(init_cfg)
-        ### print('init_cfg:', init_cfg)  ### None
 
         self.batch_first = batch_first
 

@@ -13,10 +13,8 @@ class SemmapLoss(nn.Module):
         loss = self.loss(obj_pred, obj_gt)
         loss = torch.mul(loss, mask)
         # -- mask is assumed to have a least one value
-        # print('mask_in_loss:', mask.sum(), mask)
 
         loss = loss.sum()/mask.sum()
-        # print("loss_loss:", loss)
 
         return loss
 
@@ -28,20 +26,16 @@ class hcl_loss_masked(nn.Module):
         loss_all = 0.0
         for fs, ft in zip(fstudent, fteacher):
             n,c,h,w = fs.shape
-            # print('fs_shape:', fs.size(), ft.size())
 
             fs_masked = fs[:, :, round(0.4*h):round(0.6*h), :] 
             ft_masked = ft[:, :, round(0.4*h):round(0.6*h), :] 
-            # print('fs_masked:', fs_masked.size())
 
             loss = F.mse_loss(fs_masked, ft_masked, reduction='mean')
-            # print('loss_in_mid:', loss.size(), loss)
             ##################################################################################################################################
             # mask = torch.zeros(( h, w), device=loss.device)
             # mask[round(0.3*h): round(0.7*h), :] = 1
             # loss = torch.mul(loss, mask)
             # # -- mask is assumed to have a least one value
-            # # print('mask_in_loss:', mask.sum(), loss.sum(), loss)
             # loss = loss.sum()/mask.sum()/c
             
             ##################################################################################################################################
@@ -57,7 +51,6 @@ class hcl_loss_masked(nn.Module):
                 loss += F.mse_loss(tmpfs, tmpft, reduction='mean') * cnt
                 tot += cnt
             loss = loss / tot
-            # print('loss_end:', loss, tot)
             loss_all = loss_all + loss
         return loss_all
     ###############################################################################################################################################
@@ -71,7 +64,6 @@ class hcl_loss(nn.Module):
 
             for fs, ft in zip(fstudent, fteacher):
                 n,c,h,w = fs.shape
-                # print('fs,ft:', fs.size())
                 loss = F.mse_loss(fs, ft, reduction='mean')
 
                 cnt = 1.0
@@ -122,25 +114,18 @@ class KL_div_loss(nn.Module):
         # mask = mask.float()
         for fs, ft in zip(fstudent, fteacher):
             n,c,h,w = fs.shape
-            # print('fs_shape:', fs.size(), ft.size())
 
             loss = F.kl_div(fs.softmax(dim=-1).log(), ft.softmax(dim=-1), reduction="none")
-            # print('loss_in_kl:', loss, loss.size())
 
-            
             mask = torch.zeros(( h, w), device=loss.device)
             mask[round(0.3*h): round(0.7*h), :] = 1
-        
-            # print('mask:', mask.device)
 
             loss = torch.mul(loss, mask)
             # -- mask is assumed to have a least one value
-            # print('mask_in_loss:', mask.sum(), mask)
 
             loss = loss.sum()/mask.sum()
             loss_all = loss_all + loss
-            # print("loss_loss:", loss_all, mask.sum())
- 
+
         return loss_all
 
 
@@ -223,36 +208,3 @@ class CriterionCWD(nn.Module):
 
         loss_all = loss_all + loss
         return loss_all * (self.temperature**2)
-        # return loss * (self.temperature**2)
-
-
-    # def forward(self,fstudent, fteacher):
-
-    #     loss_all = 0.0
-    #     for fs, ft in zip(fstudent, fteacher):
-
-    #         n,c,h,w = fs.shape
-    #         #import pdb;pdb.set_trace()
-    #         if self.normalize is not None:
-    #             norm_s = self.normalize(fs/self.temperature)
-    #             norm_t = self.normalize(ft.detach()/self.temperature)
-    #         else:
-    #             norm_s = fs[0]
-    #             norm_t = ft[0].detach()
-            
-            
-    #         if self.divergence == 'kl':
-    #             norm_s = norm_s.log()
-    #         loss = self.criterion(norm_s,norm_t)
-            
-    #         #item_loss = [round(self.criterion(norm_t[0][0].log(),norm_t[0][i]).item(),4) for i in range(c)]
-    #         #import pdb;pdb.set_trace()
-    #         if self.norm_type == 'channel' or self.norm_type == 'channel_mean':
-    #             loss /= n * c
-    #             # loss /= n * h * w
-    #         else:
-    #             loss /= n * h * w
-
-    #         loss_all = loss_all + loss
-    #     return loss_all * (self.temperature**2)
-    #     # return loss * (self.temperature**2)

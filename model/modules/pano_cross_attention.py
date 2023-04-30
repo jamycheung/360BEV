@@ -1,8 +1,7 @@
-
 # ---------------------------------------------
 # Copyright (c) OpenMMLab. All rights reserved.
 # ---------------------------------------------
-#  Modified by Zhiqi Li
+#  Modified by Zhifeng Teng
 # ---------------------------------------------
 import numpy as np
 from mmcv.ops.multi_scale_deform_attn import multi_scale_deformable_attn_pytorch
@@ -22,9 +21,6 @@ from mmcv.runner.base_module import BaseModule, ModuleList, Sequential
 
 from mmcv.utils import ext_loader
 from .multi_scale_deformable_attn_function import MultiScaleDeformableAttnFunction_fp32, MultiScaleDeformableAttnFunction_fp16
-# from multi_scale_deformable_attn_function import MultiScaleDeformableAttnFunction_fp32, \
-#     MultiScaleDeformableAttnFunction_fp16
-# from projects.mmdet3d_plugin.models.utils.bricks import run_time
 ext_module = ext_loader.load_ext(
     '_ext', ['ms_deform_attn_backward', 'ms_deform_attn_forward'])
 
@@ -69,7 +65,6 @@ class PanoCrossAttention(BaseModule):
         self.output_proj = nn.Linear(embed_dims, embed_dims)
         self.batch_first = batch_first
         self.init_weight()
-        # print('init_weight:', self.init_weight()) ### None
 
     def init_weight(self):
         """Default initialization for Parameters of Module."""
@@ -124,10 +119,6 @@ class PanoCrossAttention(BaseModule):
         Returns:
              Tensor: forwarded results with shape [num_query, bs, embed_dims].
         """
-        # # print('kwargs_in BEVFormerLayer_forward1:', kwargs.keys(), kwargs['sampling_offsets'])
-        # num_head = kwargs['num_head']
-        # num_point = kwargs['num_point']
-        # sampling_offsets_cfg = kwargs['sampling_offsets']
 
         query = query.to(value.device)
 
@@ -144,45 +135,29 @@ class PanoCrossAttention(BaseModule):
             # query = query + query_pos
             query = query
 
-        # print('query:', query.size())
         bs, num_query, _ = query.size()
 
         D = reference_points_cam.size(2)
         reference_points_cam = torch.flatten(reference_points_cam, start_dim=0, end_dim=1)
         reference_points_cam = reference_points_cam.unsqueeze(0).unsqueeze(-2)
         reference_points_cam = reference_points_cam.repeat(4, 1, 1, 1)
-        # print('DDD:', reference_points_cam.size()) # D == 1 pillar的数目，暂时 #### torch.Size([1, 54694, 1, 2])
 
-
-        ### print('queries_rebatch:', queries_rebatch.size())
-        #### torch.Size([1, 6, 9675, 256])
         num_cams, l, bs, embed_dims = key.shape
-        # print('key_shape:', key.shape, query.shape)   ### torch.Size([1, 174080, 1, 128])
 
         key = key.permute(2, 0, 1, 3).reshape(
             bs * self.num_cams, l, self.embed_dims)
         value = value.permute(2, 0, 1, 3).reshape(
             bs * self.num_cams, l, self.embed_dims)
 
-        # print("key_value:", key.size(), value.size(), query.size())
-        # torch.Size([1, 174080, 256]) torch.Size([6, 174080, 256]) torch.Size([1, 40000, 256])
-        # print('level_start_index_0:', level_start_index)
-
-        # print('queries_in_deformable_attention:',query.size(), key.size(), value.size(), reference_points_cam.size())
         max_len = 256 * 512
 
         queries = self.deformable_attention(query = query, key=key, value=value, query_pos = query_pos,
                                             reference_points = reference_points_cam, spatial_shapes=spatial_shapes,
                                             level_start_index=level_start_index).view(bs, self.num_cams, max_len, self.embed_dims)
 
-        # print('queries_after_attention:', queries.size(), inp_residual.size()) ### MSDeformableAttention3D forward
-        ### torch.Size([1, 1, 36638, 128])
-
-
         ############################################################################################################################
-        # #### 替换这个slots把他变成对号入座！
+        # #### using slots
         slots = queries.squeeze(1)
-        # print('slots:', slots.size())
 
         return self.dropout(slots) + inp_residual
         # return slots_mask
@@ -260,7 +235,6 @@ class MSDeformableAttention_pano(BaseModule):
         self.embed_dims = embed_dims
         self.num_levels = num_levels # 4
         self.num_levels = 1
-        # print('self.num_levels:', self.num_levels, num_levels)
 
         self.num_heads = num_heads   # 8
         self.num_heads = 4
@@ -318,7 +292,6 @@ class MSDeformableAttention_pano(BaseModule):
         if identity is None:
             identity = query
         if query_pos is not None:
-            # print('query_pos:', query_pos.size()) ### not here
             # query = query + query_pos
             query = query 
 
@@ -329,9 +302,7 @@ class MSDeformableAttention_pano(BaseModule):
 
         bs, num_query, _ = query.shape
         bs, num_value, _ = value.shape
-        # print('bs_num_query_value:', bs, num_query, num_value, query.size(), value.size())
 
-        # print('num_value_haha:', num_value, spatial_shapes )             # 174080
         assert (spatial_shapes[:, 0] * spatial_shapes[:, 1]).sum() == num_value
 
         if key_padding_mask is not None:  #### key_padding_mask None
@@ -339,52 +310,31 @@ class MSDeformableAttention_pano(BaseModule):
 
         value = value.view(bs, num_value, self.num_heads, -1)
 
-
         # sampling_offsets = self.sampling_offsets(query).view(bs, num_query, self.num_heads, self.num_levels, self.num_points, 2)
-        
         ###########################query_pos exaction#############################################################################
         reference_points = reference_points.to(device = value.device)  # torch.Size([1, 256, 256, 512])
 
-        # print('sampling_offsets:', reference_points.size(), query.size(), num_query, self.sampling_offsets(query).size())
-        sampling_offsets = self.sampling_offsets(query).view(bs, num_query, self.num_heads, self.num_levels, self.num_points, 2)           
-        # print('sampling_offsets_haha:', sampling_offsets.size(), sampling_offsets[...,0].min(), sampling_offsets[...,0].max(), sampling_offsets[...,1].min(), sampling_offsets[...,1].max())
-        ## aaa - torch.Size([6, 9675, 512]), torch.Size([1, 29454, 8, 4, 8, 2]) 相当于query经过线性层 512 输出，拆成8,4,8,2
-        # print(" sampling_offsets:", sampling_offsets.size(), sampling_offsets.device, reference_points.device)
+        sampling_offsets = self.sampling_offsets(query).view(bs, num_query, self.num_heads, self.num_levels, self.num_points, 2)
+        ## aaa - torch.Size([bs, 29454, 8, 4, 8, 2])
 
         # attention_weights = self.attention_weights(query).view(bs, num_query, self.num_heads, self.num_levels * self.num_points)
-        
         attention_weights =  self.attention_weights(query).view(bs, num_query, self.num_heads, self.num_levels * self.num_points)
-        
 
-        # print('attention_weights:', attention_weights.size(), self.num_levels, self.num_heads) ## torch.Size([1, 23853, 8, 32])
-        
-        ### 线性层 self.attention_weights, torch.Size([1, 23853, 8, 32])
-
-        # print('attention_weights_0:', attention_weights[0, 2500:2600, :, :])  ###Attention的weight很奇怪
         attention_weights = attention_weights.softmax(-1)
         # attention_weights = attention_equal.softmax(-1)
-        ### 现在把attention均值化
-        # print('attention_weights_1:', attention_weights[0, 2500:2600, :, :])
-
 
         attention_weights = attention_weights.view(bs, num_query,
                                                    self.num_heads,
                                                    self.num_levels,
                                                    self.num_points)
-        # print('attention_weights333:', attention_weights[0, 1000, 2, :, :], attention_weights.size()) ### torch.Size([1, 23853, 8, 4, 8])
-
 
         if reference_points.shape[-1] == 2:
 
             offset_normalizer = torch.stack(
                 [spatial_shapes[..., 1], spatial_shapes[..., 0]], -1)
-            # print('offset_normalizer:', sampling_offsets.size(), offset_normalizer.size())
-            ### calculate from spatial_shapes 重新写不同的normalizer给新的尺寸
+            ### calculate from spatial_shapes
 
             bs, num_query, num_Z_anchors, xy = reference_points.shape
-            # print('reference_point_in_spatial_cross:', reference_points.size())
-            ## torch.Size([1, 36638, 1, 2])
-
             reference_points = reference_points[:, :, None, None, None, :, :]
 
             if self.sampling_offsets_th == 0:
@@ -397,39 +347,18 @@ class MSDeformableAttention_pano(BaseModule):
                 sampling_offsets = sampling_offsets / offset_normalizer[None, None, None, :, None, :]
                 sampling_offsets = torch.clamp(sampling_offsets, min=-self.sampling_offsets_th, max=self.sampling_offsets_th)
 
-
-            # print('sampling_offsets_333:', sampling_offsets[..., 0], sampling_offsets[..., 1] ,sampling_offsets[..., 0].min(), sampling_offsets[..., 0].max(), sampling_offsets[...,1].min(), sampling_offsets[..., 1].max())
+            bs, num_query, num_heads, num_levels, num_all_points, xy = sampling_offsets.shape
             
-            # print('offset_normalizer:', sampling_offsets.size(), offset_normalizer) ### torch.Size([4, 2]), torch.Size([1, 36638, 8, 4, 8, 2])
-                # tensor([[200, 116], Normalizer
-                #         [100,  58],
-                #         [ 50,  29],
-                #         [ 25,  15]], device='cuda:0')
-
-            bs, num_query, num_heads, num_levels, num_all_points, xy = sampling_offsets.shape # [1, 29454, 8, 4, 8, 2]
-            
-            #################################### sampling offset 在这里修改高度 ###########################################
+            #################################### sampling offset ## modify the size here ##################################
             sampling_offsets = sampling_offsets.view(
                 bs, num_query, num_heads, num_levels, num_all_points // num_Z_anchors, num_Z_anchors, xy)
 
-            # print('reference_points333:', reference_points.size(), sampling_offsets.size(), reference_points.max(), reference_points.min(), sampling_offsets.max(), sampling_offsets.min())
-            ### torch.Size([1, 36638, 1, 1, 1, 1, 2]) torch.Size([1, 36638, 8, 4, 8, 1, 2])
-            
             sampling_locations = reference_points + sampling_offsets
-            # print('reference_points_in_details:', reference_points[...,0].min(), reference_points[...,0].max(), reference_points[...,1].min(), reference_points[...,1].max())
-            # print('sampling_offset:', sampling_offsets)
-
-            # sampling_locations = reference_points
-            # torch.Size([1, 36638, 8, 4, 8, 1, 2])
 
             bs, num_query, num_heads, num_levels, num_points, num_Z_anchors, xy = sampling_locations.shape
             assert num_all_points == num_points * num_Z_anchors
-            # print('sampling_offsets, sampling_locations:', sampling_offsets.size(), num_points * num_Z_anchors, num_points)
             ### bs, num_query, num_heads-8, num_levels-4, num_points-2, num_Z_anchors-4
-
-            sampling_locations = sampling_locations.view(bs, num_query, num_heads, num_levels, num_all_points, xy)  #### [1, 36638, 8, 4, 8, 2]
-
-            # print('sampling_locations_in_details:', sampling_locations.max(), sampling_locations.min())
+            sampling_locations = sampling_locations.view(bs, num_query, num_heads, num_levels, num_all_points, xy)
 
         elif reference_points.shape[-1] == 4:
             assert False
@@ -440,12 +369,6 @@ class MSDeformableAttention_pano(BaseModule):
 
         #  sampling_locations.shape: bs, num_query, num_heads, num_levels, num_all_points, 2
         #  attention_weights.shape: bs, num_query, num_heads, num_levels, num_all_points
-        #
-        # print('cuda_device:', torch.cuda.is_available(), value.size(), value.is_cuda)
-        ### cuda_device: True torch.Size([6, 30825, 8, 32]) True
-
-        # print('level_start_index_1:', level_start_index, spatial_shapes) ###  tensor([0, 23200, 29000, 30450], device='cuda:0')
-
 
         if torch.cuda.is_available() and value.is_cuda:
             if value.dtype == torch.float16:
@@ -456,21 +379,13 @@ class MSDeformableAttention_pano(BaseModule):
                 value, spatial_shapes, level_start_index, sampling_locations,
                 attention_weights, self.im2col_step)
 
-            ##### output = multi_scale_deformable_attn_pytorch(value, spatial_shapes, sampling_locations, attention_weights)
-            # print('MultiScaleDeformableAttnFunction:', value.size(),level_start_index, sampling_locations.size(), attention_weights.size(), output.size())
-            ### torch.Size([1, 174080, 8, 32]) torch.Size([1, 23146, 8, 4, 8, 2]) torch.Size([1, 23146, 8, 4, 8]) torch.Size([1, 23146, 256])
-            ### 8头注意力拆分！
-            ### 如果单头注意力，
+          ##### output = multi_scale_deformable_attn_pytorch(value, spatial_shapes, sampling_locations, attention_weights)
 
         else:
             output = multi_scale_deformable_attn_pytorch(
                 value, spatial_shapes, sampling_locations, attention_weights)
         if not self.batch_first:
             output = output.permute(1, 0, 2)
-        ## print('output_in_MSDeformableAttention3D:', output[2, 1300:1600,:])
-        #### torch.Size([6, 9676, 256])
-        
-        # del value, sampling_offsets, attention_weights,  reference_points, sampling_locations
 
         return output
 

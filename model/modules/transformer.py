@@ -1,7 +1,7 @@
 # ---------------------------------------------
 # Copyright (c) OpenMMLab. All rights reserved.
 # ---------------------------------------------
-#  Modified by  Zhifeng Teng
+#  Modified by Zhifeng Teng
 # ---------------------------------------------
 
 import numpy as np
@@ -129,7 +129,6 @@ class PerceptionTransformer(BaseModule):
                            for each in kwargs['img_metas']])
         delta_y = np.array([each['can_bus'][1]
                            for each in kwargs['img_metas']])
-        print('delta_x, delta_y:', delta_x, delta_y)
 
         ego_angle = np.array(
             [each['can_bus'][-2] / np.pi * 180 for each in kwargs['img_metas']])
@@ -177,7 +176,6 @@ class PerceptionTransformer(BaseModule):
             spatial_shape = (h, w)
             feat = feat.flatten(3).permute(1, 0, 3, 2)
 
-
             if self.use_cams_embeds:
                 feat = feat + self.cams_embeds[:, None, None, :].to(feat.dtype)
             feat = feat + self.level_embeds[None,
@@ -197,12 +195,12 @@ class PerceptionTransformer(BaseModule):
 
         bev_embed = self.encoder(
             bev_queries,
-            feat_flatten,                   ##### 四层feature map 拉直了来的，降采样8
+            feat_flatten,                   ##### from feature maps
             feat_flatten,
             bev_h=bev_h,
             bev_w=bev_w,
             bev_pos=bev_pos,
-            spatial_shapes=spatial_shapes,  ##### 都是feature map里来的
+            spatial_shapes=spatial_shapes,  #####
             level_start_index=level_start_index,
             prev_bev=prev_bev,
             shift=shift,
@@ -224,6 +222,7 @@ class PerceptionTransformer(BaseModule):
                 cls_branches=None,
                 prev_bev=None,
                 **kwargs):
+
         """Forward function for `Detr3DTransformer`.
         Args:
             mlvl_feats (list(Tensor)): Input queries from
