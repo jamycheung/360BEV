@@ -99,6 +99,13 @@ Data statistics:
 *Coming soon...*
 
 
+## References
+We appreciate the previous open-source works.
+* [BEVFormer](https://github.com/fundamentalvision/BEVFormer)
+* [SegFormer](https://github.com/NVlabs/SegFormer)
+* [SegNeXt](https://github.com/visual-attention-network/segnext)
+* [mmsegmentation](https://github.com/open-mmlab/mmsegmentation)
+
 ## License
 
 This repository is under the Apache-2.0 license. For commercial use, please contact with the authors.
