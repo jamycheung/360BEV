@@ -103,7 +103,7 @@ data/
 | :--------- | :----------: | :--------: | :---------: | :------------: | :------------: | :-------------- |
 |Trans4Map | MiT-B0 | 70.19 | 44.31 | 50.39 | 31.92  |  |
 |Trans4Map | MiT-B2 | 73.28 | 51.60 | 53.02 | 36.72  |  |
-| Ours | MiT-B0 | 75.44 | 48.80 | 56.01 | 36.98  | [B0]() |
+| Ours | MiT-B0 | 75.44 | 48.80 | 56.01 | 36.98  | [B0](https://drive.google.com/file/d/1B3wtAbb57P56QQIX6tAUNwoRp07Y7zIV/view?usp=share_link) |
 | Ours | MiT-B2 | 78.80 | 59.54 | 59.97 | 44.32  | [B2](https://drive.google.com/file/d/1B1zxgYn5w_VRb1oZ8h4b6Zm0BgQsxlgs/view?usp=share_link) |
 | Ours | MSCA-B |**78.93** | **60.51** | **62.83** | **46.31** | [MSCA-B](https://drive.google.com/file/d/1MoBzRX-GmVEvMlthmvl-n5v2hIe6lOgd/view?usp=share_link) |
 ## Usage
