@@ -26,11 +26,11 @@ In this work, mapping from 360° panoramas to BEV semantics, the **360BEV** task
 
 For more details, please check our paper.
 
-## Update
+## :fire: Update
 
-- [x] 03/2023, init repository.
+- [x] 05/2023,  release datasets.
 - [x] 04/2023, release code and models.
-- [ ] 04/2023, release datasets.
+- [x] 03/2023, init repository.
 
 ## 360BEV datasets
 
@@ -38,11 +38,12 @@ Prepare datasets:
 - [Stanford2D3D](https://arxiv.org/abs/1702.01105)
 - [Matterport3D](https://niessner.github.io/Matterport)
 
-Extended datasets:
-- 360BEV-Stanford (*Coming soon...*)
-- 360BEV-Matterport (*Coming soon...*)
+Our extended datasets:
+- 360BEV-Stanford (214MB, ~3GB after extracted. **Download from [Google Drive](https://drive.google.com/file/d/1YZ8Ea0QwNu6jBDYa09EnQT4H0LN6Pgmz/view?usp=sharing)**)
+- 360BEV-Matterport (2.0GB, ~23GB after extracted. **Download from [Google Drive](https://drive.google.com/file/d/1YYVLq3ndvSP2aBlUsTlhbBa4sJ7AfjhB/view?usp=sharing)**)
+- 360FV-Matterport (631MB, ~700MB after extracted. **Download from [Google Drive](https://drive.google.com/file/d/1YcheGJeISzFmxs9ancL7MGNSh7Zo7ZBc/view?usp=sharing)**)
 
-Data statistics:
+Data statistics of 360BEV datasets:
 
 | Dataset  | Scene  | Room | Frame | Category |
 |-------------------|:----------------:|:---------------:|:----------------:|:-------------------:|
@@ -53,6 +54,17 @@ Data statistics:
 | val      |         7        |        --       |        772       |          20         |
 | test     |        18        |        --       |       2,014      |          20         |
 | **360BEV-Matterport** |        86        |      2,030      |      10,615      |          20         |
+
+Dataset structure:
+```text
+data/
+├── Stanford2D3D
+├── 360BEV-Stanford
+├── 360BEV-Matterport
+├── 360FV-Matterport
+
+```
+
 
 ## 360Mapper model
 
@@ -113,7 +125,7 @@ This repository is under the Apache-2.0 license. For commercial use, please cont
 
 ## Citation
 
-If you are interested in this work, please cite the following works:
+If you are interested in this work, please cite the following work:
 ```
 @article{teng2023360bev,
   title={360BEV: Panoramic Semantic Mapping for Indoor Bird's-Eye View}, 
