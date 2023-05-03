@@ -139,7 +139,7 @@ data/
 
 
 ## Train
-For example, to use 4 2080Ti GPUs to run the experiments:
+For example, use 4 2080Ti GPUs to run the experiments:
 ```bash
 
 # 360BEV_Matterport
@@ -149,10 +149,10 @@ python train_360BEV_Matterport.py --config configs/model_360BEV_mp3d.yml
 python train_360BEV_S2d3d.py --config configs/model_360BEV_s2d3d.yml
 
 # Stanford2D3D
-python train_pano_360Attention_S2d3d.py --config model_fv_s2d3d.yml
+python train_pano_360Attention_S2d3d.py --config configs/model_fv_s2d3d.yml
 
 # 360FV-Matterport
-python train_pano_360Attention_Matterport.py --config model_fv_mp3d.yml
+python train_pano_360Attention_Matterport.py --config configs/model_fv_mp3d.yml
 
 ```
 
@@ -166,10 +166,10 @@ python test_360BEV_Matterport.py --config configs/model_360BEV_mp3d.yml
 python test_360BEV_S2d3d.py --config configs/model_360BEV_s2d3d.yml
 
 # Stanford2D3D
-python test_pano_360Attention_S2d3d.py --config model_fv_s2d3d.yml
+python test_pano_360Attention_S2d3d.py --config configs/model_fv_s2d3d.yml
 
 # 360FV-Matterport
-python test_pano_360Attention_Matterport.py --config model_fv_mp3d.yml
+python test_pano_360Attention_Matterport.py --config configs/model_fv_mp3d.yml
 
 ```
 
