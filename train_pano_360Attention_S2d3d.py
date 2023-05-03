@@ -16,8 +16,8 @@ from tensorboardX import SummaryWriter
 from torch.optim.lr_scheduler import LambdaLR
 from torch.utils.data import DistributedSampler
 
-from utils.lib2_s2d3d.dataset.dataset_matterport_sem_class20 import matterport_SemDataset33
-from utils.lib2_mp3d.dataset.dataset_s2d3d_sem_class13 import S2d3dSemDataset
+from other_files.dataset_matterport_sem_class20 import matterport_SemDataset33
+from other_files.dataset_s2d3d_sem_class13 import S2d3dSemDataset
 
 # from model.trans4pano_map_new_decoder import Trans4map_segformer
 # from model.trans4pano_deformable_detr import Trans4map_deformable_detr

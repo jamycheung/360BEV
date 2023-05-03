@@ -59,9 +59,29 @@ Dataset structure:
 ```text
 data/
 ├── Stanford2D3D
+│   └── area_[1|2|3|4|5a|5b|6]
+│       ├── rgb/*png
+│       └── semantic/*png
+│
 ├── 360BEV-Stanford
+│   ├── training
+│   └── valid
+│       ├── data_base_with_rotationz_realdepth/*h5
+│       └── ground_truth/*h5
+│
 ├── 360BEV-Matterport
-├── 360FV-Matterport
+│   ├── training
+│   ├── testing
+│   └── valid
+│       ├── smnet_training_data_zteng/*h5
+│       └── topdown_gt_real_height/*h5
+│
+└── 360FV-Matterport
+    ├── 17DRP5sb8fy
+    │   ├── depth/*png
+    │	  ├── rgb/*png
+    │	  └── semantic/*png   
+    └── ...
 
 ```
 
