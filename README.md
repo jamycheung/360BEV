@@ -126,9 +126,53 @@ data/
 | Ours | MiT-B0 | 75.44 | 48.80 | 56.01 | 36.98  | [B0](https://drive.google.com/file/d/1B3wtAbb57P56QQIX6tAUNwoRp07Y7zIV/view?usp=share_link) |
 | Ours | MiT-B2 | 78.80 | 59.54 | 59.97 | 44.32  | [B2](https://drive.google.com/file/d/1B1zxgYn5w_VRb1oZ8h4b6Zm0BgQsxlgs/view?usp=share_link) |
 | Ours | MSCA-B |**78.93** | **60.51** | **62.83** | **46.31** | [MSCA-B](https://drive.google.com/file/d/1MoBzRX-GmVEvMlthmvl-n5v2hIe6lOgd/view?usp=share_link) |
-## Usage
 
-*Coming soon...*
+### Installation
+```bash
+#### To create conda env:
+    conda create -n 360BEV python=3.8
+    conda activate 360BEV
+    cd /path/to/360BEV
+    pip install -r requirements.txt
+```
+ To make the model run successful, we need to install [mmdetection](https://mmdetection.readthedocs.io/en/v2.0.0/install.html).
+
+
+## Train
+For example, to use 4 2080Ti GPUs to run the experiments:
+```bash
+
+# 360BEV_Matterport
+python train_360BEV_Matterport.py --config configs/model_360BEV_mp3d.yml
+
+# 360BEV_S2d3d
+python train_360BEV_S2d3d.py --config configs/model_360BEV_s2d3d.yml
+
+# Stanford2D3D
+python train_pano_360Attention_S2d3d.py --config model_fv_s2d3d.yml
+
+# 360FV-Matterport
+python train_pano_360Attention_Matterport.py --config model_fv_mp3d.yml
+
+```
+
+## Test
+
+```bash
+# 360BEV_Matterport
+python test_360BEV_Matterport.py --config configs/model_360BEV_mp3d.yml
+
+# 360BEV_S2d3d
+python test_360BEV_S2d3d.py --config configs/model_360BEV_s2d3d.yml
+
+# Stanford2D3D
+python test_pano_360Attention_S2d3d.py --config model_fv_s2d3d.yml
+
+# 360FV-Matterport
+python test_pano_360Attention_Matterport.py --config model_fv_mp3d.yml
+
+```
+
 
 
 ## References

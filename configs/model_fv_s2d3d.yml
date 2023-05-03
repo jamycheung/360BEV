@@ -51,4 +51,4 @@ training:
 # model_path: # Your path to pre-trained model weights  # 3-fold
 # model_path: # Your path to pre-trained model weights  # 2-fold
 model_path:   # Your path to pre-trained model weights  # 1-fold
-output_dir:   # /your_path_to_output/
+output_dir:  ./ # /your_path_to_output/

@@ -82,4 +82,4 @@ training:
 
 model_path:    # Your path to pre-trained model weights    # segnext b2
 # model_path:  # Your path to pre-trained model weights    # segformer b2
-output_dir:    # /your_path_to_output/
+output_dir:    ./ # /your_path_to_output/

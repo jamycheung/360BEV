@@ -8,7 +8,6 @@ import torch.utils.data as data
 import torch.nn.functional as F
 import pandas as pd
 import cv2
-# from lib.misc import panostretch
 
 
 __FOLD__ = {
@@ -56,13 +55,10 @@ class S2d3dSemDataset(data.Dataset):
         self.sem_paths = []
         #self.dep_paths = []
         for dname in __FOLD__[fold]:
-            # print("path_root:",sorted(glob.glob(os.path.join(root, dname, 'rgb', '*png'))))
             self.rgb_paths.extend(sorted(glob.glob(os.path.join(root, dname, 'rgb', '*png'))))
             self.sem_paths.extend(sorted(glob.glob(os.path.join(root, dname, 'semantic', '*png'))))
             # self.dep_paths.extend(sorted(glob.glob(os.path.join(root, dname, 'depth', '*png'))))
-        # print("haha:",self.rgb_paths)
         assert len(self.rgb_paths)
-        # print("**:",len(self.rgb_paths), len(self.sem_paths), len(self.dep_paths))
         assert len(self.rgb_paths) == len(self.sem_paths)
         # assert len(self.rgb_paths) == len(self.dep_paths)
         self.flip = flip
@@ -84,7 +80,6 @@ class S2d3dSemDataset(data.Dataset):
         if (H, W) != self.hw:
             rgb = F.interpolate(rgb[None], size=self.hw, mode='bilinear', align_corners=False)[0]
             sem = F.interpolate(sem[None,None].float(), size=self.hw, mode='nearest')[0,0].long()
-        # print('rgb_s2d3d:', rgb.size(), sem.size())
 
         # Random flip
         if self.flip and np.random.randint(2) == 0:

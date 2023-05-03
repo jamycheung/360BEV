@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 import torch.nn
 from pathlib import Path
+import argparse
 
 # from model.front_view_segformer import front_view_segformer
 from model.Attention360_pano_s2d3d import Attention360_pano_s2d3d
@@ -14,17 +15,21 @@ from utils.lib2_s2d3d.dataset.dataset_s2d3d_sem_class13 import S2d3dSemDataset
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 ########################################################################################################################
-# # model_path = "./checkpoints/model_pano_segformer/2023-03-06-22-16/ckpt_model.pkl"
-# # model_path = "./checkpoints/model_pano_segformer/2023-03-07-16-55/ckpt_model.pkl"
-# model_path = "./checkpoints/model_pano_segformer/2023-03-07-22-45/ckpt_model.pkl" # ckpt for 360Attention
-# # model_path = "./checkpoints/model_pano_segformer/2023-02-25-16-54/ckpt_model.pkl" # trans4pass test
 ########################################################################################################################
-# state = torch.load(model_path, map_location='cpu')
-########################################################################################################################
-config_path = "configs/model_fv_s2d3d.yml"
 
-with open(config_path) as fp:
+parser = argparse.ArgumentParser(description="config")
+parser.add_argument(
+    "--config",
+    nargs="?",
+    type=str,
+    default="configs/model_fv_s2d3d.yml",
+    help="Configuration file to use",
+)
+
+args = parser.parse_args()
+with open(args.config) as fp:
     cfg = yaml.safe_load(fp)
+
 ########################################################################################################################
 output_dir = cfg['output_dir']
 Path(output_dir).mkdir(parents=True, exist_ok=True)

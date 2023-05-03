@@ -4,6 +4,8 @@ import cv2
 import numpy as np
 import torch.nn
 from pathlib import Path
+import argparse
+
 
 from torch.utils import data
 from metric.iou import IoU
@@ -18,14 +20,21 @@ from model.dataloader_s2d3d.pano_data_loader import DatasetLoader_pano_detr
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-########################################################################################################################
-# model_path = "./checkpoints/pano_deformable_detr_plus/2023-02-23-16-14/ckpt_model.pkl"  # 360Attention
-# model_path = "./checkpoints/pano_top_down_mapping/3078/ckpt_model.pkl"  # baseline trans4map
-########################################################################################################################
-config_path = "configs/model_360BEV_s2d3d.yml"
 
-with open(config_path) as fp:
+######################
+parser = argparse.ArgumentParser(description="config")
+parser.add_argument(
+    "--config",
+    nargs="?",
+    type=str,
+    default="configs/model_360BEV_s2d3d.yml",
+    help="Configuration file to use",
+)
+
+args = parser.parse_args()
+with open(args.config) as fp:
     cfg = yaml.safe_load(fp)
+
 ########################################################################################################################
 output_dir = cfg['output_dir']
 Path(output_dir).mkdir(parents=True, exist_ok=True)

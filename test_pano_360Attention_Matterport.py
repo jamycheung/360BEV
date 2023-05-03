@@ -5,6 +5,8 @@ import cv2
 import numpy as np
 import torch.nn
 from pathlib import Path
+import argparse
+
 
 # from model.trans4pano_map import Trans4map_segformer
 # from model.trans4pano_deformable_detr import Trans4map_deformable_detr
@@ -16,15 +18,21 @@ from utils.lib2_mp3d.dataset import matterport_SemDataset33
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 ########################################################################################################################
-# model_path = "./checkpoints/model_pano_segformer/2023-02-09-00-40-B2-crop-distortion/ckpt_model.pkl"
-# model_path = "./checkpoints/model_pano_segformer/2023-02-08-23-30-B4-crop/ckpt_model.pkl"
-# model_path = "./checkpoints/model_pano_segformer/2023-02-18-18-49/ckpt_model.pkl"  # 360Attention
-# model_path = "./checkpoints/model_pano_segformer/2023-03-13-20-57/ckpt_model.pkl"  # tras4pass
 ########################################################################################################################
-config_path = "configs/model_fv_mp3d.yml"
 
-with open(config_path) as fp:
+parser = argparse.ArgumentParser(description="config")
+parser.add_argument(
+    "--config",
+    nargs="?",
+    type=str,
+    default="configs/model_fv_mp3d.yml",
+    help="Configuration file to use",
+)
+
+args = parser.parse_args()
+with open(args.config) as fp:
     cfg = yaml.safe_load(fp)
+
 ########################################################################################################################
 output_dir = cfg['output_dir']
 Path(output_dir).mkdir(parents=True, exist_ok=True)

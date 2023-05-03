@@ -373,6 +373,9 @@ if __name__ == "__main__":
     with open(args.config) as fp:
         cfg = yaml.safe_load(fp)
 
+
+
+
     name_expe = cfg['name_experiment']
 
     run_id = random.randint(1, 100000)

@@ -2,6 +2,8 @@ import yaml
 import numpy as np
 import torch.nn
 from pathlib import Path
+import argparse
+
 
 from torch.utils import data
 from metric.iou import IoU
@@ -13,9 +15,20 @@ from model.dataloader_mp3d.pano_data_loader import DatasetLoader_pano_detr
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 ########################################################################################################################
-config_path = "configs/model_360BEV_mp3d.yml"
+# config_path = "configs/model_360BEV_mp3d.yml"
 
-with open(config_path) as fp:
+######################
+parser = argparse.ArgumentParser(description="config")
+parser.add_argument(
+    "--config",
+    nargs="?",
+    type=str,
+    default="configs/model_360BEV_mp3d.yml",
+    help="Configuration file to use",
+)
+
+args = parser.parse_args()
+with open(args.config) as fp:
     cfg = yaml.safe_load(fp)
 
 ########################################################################################################################
@@ -51,19 +64,6 @@ model.load_state_dict(weights)
 model.eval()
 
 ########################################################################################################################
-
-# model_path = "/home/zteng/Trans4Map/checkpoints/pano_top_down_mapping/15epoch_train/57028/ckpt_model.pkl"
-# model_path = "./checkpoints/pano_deformable_detr/2023-01-09-00-08/ckpt_model.pkl"
-# model_path = "./checkpoints/2023-02-09-23-14-B2-lr6-decay7/ckpt_model.pkl"  ### 44.3% 不成功
-# model_path = "./checkpoints/pano_deformable_detr_plus/2023-02-20-03-24/ckpt_model.pkl"
-
-# model_path = "/home/zteng/Desktop/checkpoints/new_decoder/ckpt_model.pkl"
-# model_path = './checkpoints/2023-02-24-00-10/ckpt_model.pkl'
-
-# model = Trans4map_deformable_detr(cfg_model, device)
-# model = Trans4map_deformable_detr_plus(cfg_model, device)
-# model = Trans4map_deformable_detr_segnext(cfg_model, device)
-# model = Trans4map_deformable_detr_plus(cfg_model, device)
 ########################################################################################################################
 
 test_loader = DatasetLoader_pano_detr(cfg["data"], split=cfg["data"]["val_split"])

@@ -88,4 +88,4 @@ training:
 # model_path: # Your path to pre-trained model weights    # transformer + b0
 # model_path: # Your path to pre-trained model weights    # transformer + b2
 model_path:   # Your path to pre-trained model weights    # 360Attention + Segnext
-output_dir:   # /your_path_to_output/
+output_dir:   ./ # /your_path_to_output/

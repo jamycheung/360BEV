@@ -45,4 +45,4 @@ training:
         lr_epoch_per_decay: 20
 
 model_path: # Your path to pre-trained model weights
-output_dir: # /your_path_to_output/
+output_dir: ./ # /your_path_to_output/
