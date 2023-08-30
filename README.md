@@ -1,6 +1,6 @@
 <div align="center"> 
 
-## 360BEV: Panoramic Semantic Mapping for Indoor Bird’s-Eye View
+## 360BEV: Panoramic Semantic Mapping for Indoor Bird’s-Eye View (IEEE/CVF WACV 2024)
 
 </div>
 
@@ -191,10 +191,10 @@ This repository is under the Apache-2.0 license. For commercial use, please cont
 
 If you are interested in this work, please cite the following work:
 ```
-@article{teng2023360bev,
+@inproceedings{teng2024_360bev,
   title={360BEV: Panoramic Semantic Mapping for Indoor Bird's-Eye View}, 
   author={Teng, Zhifeng and Zhang, Jiaming and Yang, Kailun and Peng, Kunyu and Shi, Hao and Reiß, Simon and Cao, Ke and Stiefelhagen, Rainer},
-  journal={arXiv preprint arXiv:2303.11910},
-  year={2023}
+  booktitle={2024 IEEE/CVF Winter Conference on Applications of Computer Vision (WACV)},
+  year={2024}
 }
 ```
