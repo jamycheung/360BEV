@@ -1,6 +1,6 @@
 <div align="center"> 
 
-## 360BEV: Panoramic Semantic Mapping for Indoor Bird’s-Eye View (IEEE/CVF WACV 2024)
+## 360BEV: Panoramic Semantic Mapping for Indoor Bird’s-Eye View (WACV 2024)
 
 </div>
 
