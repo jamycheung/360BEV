@@ -40,8 +40,8 @@ Prepare datasets:
 
 Our extended datasets:
 - 360BEV-Stanford (214MB, ~3GB after extracted. **Download from [Google Drive](https://drive.google.com/file/d/1YZ8Ea0QwNu6jBDYa09EnQT4H0LN6Pgmz/view?usp=sharing)**)
-- 360BEV-Matterport (2.0GB, ~23GB after extracted. **Download from [Google Drive](https://drive.google.com/file/d/1YYVLq3ndvSP2aBlUsTlhbBa4sJ7AfjhB/view?usp=sharing)**)
-- 360FV-Matterport (631MB, ~700MB after extracted. **Download from [Google Drive](https://drive.google.com/file/d/1RD0sfINWJmGetremLu0ZO7ZvoSYRZVeJ/view?usp=sharing)**)
+- 360BEV-Matterport (2GB, ~23GB after extracted. **Download from [Google Drive](https://drive.google.com/file/d/1YYVLq3ndvSP2aBlUsTlhbBa4sJ7AfjhB/view?usp=sharing)**)
+- 360FV-Matterport (50GB, ~51GB after extracted. **Download from [Google Drive](https://drive.google.com/file/d/1RD0sfINWJmGetremLu0ZO7ZvoSYRZVeJ/view?usp=sharing)**)
 
 Data statistics of 360BEV datasets:
 
