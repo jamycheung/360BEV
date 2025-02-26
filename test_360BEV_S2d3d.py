@@ -85,17 +85,15 @@ cm = 0
 with torch.no_grad():
     for batch in testingloader:
 
-        rgb, rgb_no_norm, masks_inliers, proj_indices, semmap_gt, rotationz, map_mask, map_heights, fname = batch
-        file_name = fname[0] + '.png'
+        rgb, rgb_no_norm, proj_indices, semmap_gt, map_mask, map_heights = batch
 
         rgb = rgb.to(device)
         proj_indices = proj_indices.to(device)
-        masks_inliers = masks_inliers.to(device)
         map_heights = map_heights.to(device)
         semmap_gt = semmap_gt.long()
         map_mask = map_mask.to(device)
 
-        semmap_pred, observed_masks = model(rgb, proj_indices, masks_inliers, rgb_no_norm, map_mask, map_heights)
+        semmap_pred, observed_masks = model(rgb, proj_indices, rgb_no_norm, map_mask, map_heights)
 
         if observed_masks.any():
             semmap_pred = semmap_pred.permute(0, 2, 3, 1)

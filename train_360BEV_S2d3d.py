@@ -23,6 +23,7 @@ from metric import averageMeter
 from metric.iou import IoU
 from model.utils import get_logger
 
+
 def train(rank, world_size, cfg):
     # Setup seeds
     torch.manual_seed(cfg.get("seed", 1337))
@@ -33,12 +34,12 @@ def train(rank, world_size, cfg):
     # init distributed compute
     master_port = int(os.environ.get("MASTER_PORT", 8738))
     master_addr = os.environ.get("MASTER_ADDR", "127.0.0.1")
-    tcp_store = torch.distributed.TCPStore(
-        master_addr, master_port, world_size, rank == 0
-    )
-    torch.distributed.init_process_group(
-        'nccl', store=tcp_store, rank=rank, world_size=world_size
-    )
+    tcp_store = torch.distributed.TCPStore(master_addr, master_port,
+                                           world_size, rank == 0)
+    torch.distributed.init_process_group('nccl',
+                                         store=tcp_store,
+                                         rank=rank,
+                                         world_size=world_size)
     ################################################## Setup device ####################################################
     if torch.cuda.is_available():
         device = torch.device("cuda", rank)
@@ -54,8 +55,10 @@ def train(rank, world_size, cfg):
         print('**log_dir:', cfg["logdir"])
         logger.info("Let Trans4Map training begin !!")
 
-    t_loader = DatasetLoader_pano_detr(cfg["data"], split=cfg['data']['train_split'])
-    v_loader = DatasetLoader_pano_detr(cfg['data'], split=cfg["data"]["val_split"])
+    t_loader = DatasetLoader_pano_detr(cfg["data"],
+                                       split=cfg['data']['train_split'])
+    v_loader = DatasetLoader_pano_detr(cfg['data'],
+                                       split=cfg["data"]["val_split"])
 
     t_sampler = DistributedSampler(t_loader)
     v_sampler = DistributedSampler(v_loader, shuffle=False)
@@ -63,7 +66,6 @@ def train(rank, world_size, cfg):
     if rank == 0:
         print('#Envs in train: %d' % (len(t_loader.files)))
         print('#Envs in val: %d' % (len(v_loader.files)))
-
 
     trainloader = data.DataLoader(
         t_loader,
@@ -97,7 +99,8 @@ def train(rank, world_size, cfg):
     model = model.to(device)
 
     if device.type == 'cuda':
-        model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[rank], find_unused_parameters=True)
+        model = torch.nn.parallel.DistributedDataParallel(
+            model, device_ids=[rank], find_unused_parameters=True)
 
     model_parameters = filter(lambda p: p.requires_grad, model.parameters())
     params = sum([np.prod(p.size()) for p in model_parameters])
@@ -106,16 +109,21 @@ def train(rank, world_size, cfg):
         print('# trainable parameters = ', params)
 
     # Setup optimizer, lr_scheduler and loss function ##################################################################
-    optimizer_params = {k: v for k, v in cfg["training"]["optimizer"].items() if k != "name"}
-    optimizer = torch.optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()), **optimizer_params)
+    optimizer_params = {
+        k: v
+        for k, v in cfg["training"]["optimizer"].items() if k != "name"
+    }
+    optimizer = torch.optim.AdamW(
+        filter(lambda p: p.requires_grad, model.parameters()),
+        **optimizer_params)
 
     if rank == 0:
         logger.info("Using optimizer {}".format(optimizer))
 
-    lr_decay_lambda = lambda epoch: cfg['training']['scheduler']['lr_decay_rate'] ** (
-                epoch // cfg['training']['scheduler']['lr_epoch_per_decay'])
+    lr_decay_lambda = lambda epoch: cfg['training']['scheduler'][
+        'lr_decay_rate']**(epoch // cfg['training']['scheduler'][
+            'lr_epoch_per_decay'])
     scheduler = LambdaLR(optimizer, lr_lambda=lr_decay_lambda)
-
 
     # Setup Metrics
     obj_running_metrics = IoU(cfg['model']['n_obj_classes'])
@@ -141,12 +149,13 @@ def train(rank, world_size, cfg):
         if os.path.isfile(cfg["training"]["resume"]):
             if rank == 0:
                 logger.info(
-                    "Loading model and optimizer from checkpoint '{}'".format(cfg["training"]["resume"])
-                )
+                    "Loading model and optimizer from checkpoint '{}'".format(
+                        cfg["training"]["resume"]))
                 print(
-                    "Loading model and optimizer from checkpoint '{}'".format(cfg["training"]["resume"])
-                )
-            checkpoint = torch.load(cfg["training"]["resume"], map_location="cpu")
+                    "Loading model and optimizer from checkpoint '{}'".format(
+                        cfg["training"]["resume"]))
+            checkpoint = torch.load(cfg["training"]["resume"],
+                                    map_location="cpu")
             model_state = checkpoint["model_state"]
             model.load_state_dict(model_state)
             optimizer.load_state_dict(checkpoint["optimizer_state"])
@@ -155,23 +164,26 @@ def train(rank, world_size, cfg):
             start_iter = checkpoint["iter"]
             best_iou = checkpoint['best_iou']
             if rank == 0:
-                logger.info(
-                    "Loaded checkpoint '{}' (iter {})".format(
-                        cfg["training"]["resume"], checkpoint["epoch"]
-                    )
-                )
+                logger.info("Loaded checkpoint '{}' (iter {})".format(
+                    cfg["training"]["resume"], checkpoint["epoch"]))
         else:
             if rank == 0:
-                logger.info("No checkpoint found at '{}'".format(cfg["training"]["resume"]))
-                print("No checkpoint found at '{}'".format(cfg["training"]["resume"]))
+                logger.info("No checkpoint found at '{}'".format(
+                    cfg["training"]["resume"]))
+                print("No checkpoint found at '{}'".format(
+                    cfg["training"]["resume"]))
 
     elif cfg['training']['load_model'] is not None:
-        checkpoint = torch.load(cfg["training"]["load_model"], map_location="cpu")
+        checkpoint = torch.load(cfg["training"]["load_model"],
+                                map_location="cpu")
         model_state = checkpoint['model_state']
         model.load_state_dict(model_state)
         if rank == 0:
-            logger.info("Loading model and optimizer from checkpoint '{}'".format(cfg["training"]["load_model"]))
-            print("Loading model and optimizer from checkpoint '{}'".format(cfg["training"]["load_model"]))
+            logger.info(
+                "Loading model and optimizer from checkpoint '{}'".format(
+                    cfg["training"]["load_model"]))
+            print("Loading model and optimizer from checkpoint '{}'".format(
+                cfg["training"]["load_model"]))
 
     ####################################################################################################################
     # start training Loop
@@ -184,16 +196,18 @@ def train(rank, world_size, cfg):
         for batch in trainloader:
             iter += 1
             start_ts = time.time()
-            rgb, rgb_no_norm, masks_inliers, proj_indices, semmap_gt, rotationz ,map_mask, map_heights, fname = batch
+            rgb, rgb_no_norm, proj_indices, semmap_gt, map_mask, map_heights = batch
             model.train()
             optimizer.zero_grad()
 
-            semmap_pred, observed_masks = model(rgb, proj_indices, masks_inliers, rgb_no_norm, map_mask, map_heights)
+            semmap_pred, observed_masks = model(rgb, proj_indices, rgb_no_norm,
+                                                map_mask, map_heights)
             semmap_gt = semmap_gt.long()
 
             if observed_masks.any():
 
-                loss = loss_fn(semmap_gt.to(device), semmap_pred, observed_masks)
+                loss = loss_fn(semmap_gt.to(device), semmap_pred,
+                               observed_masks)
                 loss.backward()
 
                 optimizer.step()
@@ -224,10 +238,12 @@ def train(rank, world_size, cfg):
                     tmp_metrics = IoU(cfg['model']['n_obj_classes'])
                     tmp_metrics.reset()
                     tmp_metrics.conf_metric.conf = conf_metric
-                    _, mIoU, acc, _, mRecall, _, mPrecision = tmp_metrics.value()
+                    _, mIoU, acc, _, mRecall, _, mPrecision = tmp_metrics.value(
+                    )
                     writer.add_scalar("train_metrics/mIoU", mIoU, iter)
                     writer.add_scalar("train_metrics/mRecall", mRecall, iter)
-                    writer.add_scalar("train_metrics/mPrecision", mPrecision, iter)
+                    writer.add_scalar("train_metrics/mPrecision", mPrecision,
+                                      iter)
                     writer.add_scalar("train_metrics/Overall_Acc", acc, iter)
 
                     fmt_str = "Iter: {:d} == Epoch [{:d}/{:d}] == Loss: {:.4f} == mIoU: {:.4f} == mRecall:{:.4f} == mPrecision:{:.4f} == Overall_Acc:{:.4f} == Time/Image: {:.4f}"
@@ -254,13 +270,15 @@ def train(rank, world_size, cfg):
             for batch_val in valloader:
 
                 # rgb, rgb_no_norm, masks_inliers, proj_indices, semmap_gt, map_mask, map_heights  = batch_val
-                rgb, rgb_no_norm, masks_inliers, proj_indices, semmap_gt, rotationz, map_mask, map_heights = batch_val
+                rgb, rgb_no_norm, proj_indices, semmap_gt, map_mask, map_heights = batch_val
 
-                semmap_pred, observed_masks = model(rgb, proj_indices, masks_inliers, rgb_no_norm, map_mask, map_heights)
+                semmap_pred, observed_masks = model(rgb, proj_indices, rgb_no_norm,
+                                                    map_mask, map_heights)
                 semmap_gt = semmap_gt.long()
 
                 if observed_masks.any():
-                    loss_val = loss_fn(semmap_gt.to(device), semmap_pred, observed_masks)
+                    loss_val = loss_fn(semmap_gt.to(device), semmap_pred,
+                                       observed_masks)
 
                     semmap_pred = semmap_pred.permute(0, 2, 3, 1)
 
@@ -337,7 +355,8 @@ def train(rank, world_size, cfg):
                     "scheduler_state": scheduler.state_dict(),
                     "best_iou": best_iou,
                 }
-                save_path = os.path.join(cfg['checkpoint_dir'], "ckpt_model.pkl")
+                save_path = os.path.join(cfg['checkpoint_dir'],
+                                         "ckpt_model.pkl")
                 torch.save(state, save_path)
 
         val_loss_meter.reset()

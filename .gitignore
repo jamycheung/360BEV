@@ -1,7 +1,42 @@
 *.pyc
+.DS_Store
+
+build/
+runs/
+*.egg-info/
+__pycache__/
+
+runs/
 checkpoints/
-model/other_models/
-other_files/
-test_result/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.Python
+env/
+build/
+dist/
+*.log
+
+# pyenv
+.python-version
+
+# dotenv
+.env
+
+# virtualenv
+.venv/
 venv/
-.idea/
+ENV/
+
+# VSCode settings
+.vscode
+
+# IDEA files
+.idea
+
+# OSX dir files
+.DS_Store

@@ -191,12 +191,12 @@ def train(rank, world_size, cfg):
 
             iter += 1
             start_ts = time.time()
-            rgb, rgb_no_norm, masks_inliers, proj_indices, semmap_gt, map_mask, map_heights = batch
+            rgb, rgb_no_norm, proj_indices, semmap_gt, map_mask, map_heights = batch
 
             model.train()
             optimizer.zero_grad()
 
-            semmap_pred, observed_masks = model(rgb, proj_indices, masks_inliers, rgb_no_norm, map_mask, map_heights)
+            semmap_pred, observed_masks = model(rgb, proj_indices, rgb_no_norm, map_mask, map_heights)
 
             semmap_gt = semmap_gt.long()
 
@@ -262,9 +262,9 @@ def train(rank, world_size, cfg):
         with torch.no_grad():
             for batch_val in valloader:
 
-                rgb, rgb_no_norm, masks_inliers, proj_indices, semmap_gt, map_mask, map_heights  = batch_val
+                rgb, rgb_no_norm, proj_indices, semmap_gt, map_mask, map_heights  = batch_val
 
-                semmap_pred, observed_masks = model(rgb, proj_indices, masks_inliers, rgb_no_norm, map_mask, map_heights)
+                semmap_pred, observed_masks = model(rgb, proj_indices, rgb_no_norm, map_mask, map_heights)
                 semmap_gt = semmap_gt.long()
 
                 if observed_masks.any():
