@@ -39,9 +39,9 @@ Prepare datasets:
 - [Matterport3D](https://niessner.github.io/Matterport)
 
 Our extended datasets:
-- 360BEV-Stanford (New name: Stanford-360) (1.06GB, ~1.6GB after extracted. **Download from [Google Drive](https://drive.google.com/file/d/1XzhYkJL_5pbT7I4YNiVYGRN-1ay3MsUW/view?usp=sharing)**)
-- 360BEV-Matterport (New name: Matterport-360) (24.27GB, ~30GB after extracted. **Download from [Google Drive](https://drive.google.com/file/d/1GoskbMx_tZ9kuk39jVeKrOgndMXBz-HP/view?usp=sharing)**)
-- 360FV-Matterport (50GB, ~51GB after extracted. **Download from [Google Drive](https://drive.google.com/file/d/1RD0sfINWJmGetremLu0ZO7ZvoSYRZVeJ/view?usp=sharing)**)
+- 360BEV-Stanford **(New name: Stanford-360)** (**Download from [Google Drive](https://drive.google.com/file/d/1XzhYkJL_5pbT7I4YNiVYGRN-1ay3MsUW/view?usp=sharing)**)
+- 360BEV-Matterport **(New name: Matterport-360)** (**Download from [Google Drive](https://drive.google.com/file/d/1GoskbMx_tZ9kuk39jVeKrOgndMXBz-HP/view?usp=sharing)**)
+- 360FV-Matterport (**Download from [Google Drive](https://drive.google.com/file/d/1RD0sfINWJmGetremLu0ZO7ZvoSYRZVeJ/view?usp=sharing)**)
 
 Data statistics of 360BEV datasets:
 
