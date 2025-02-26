@@ -27,8 +27,8 @@ In this work, mapping from 360° panoramas to BEV semantics, the **360BEV** task
 For more details, please check our paper.
 
 ## :fire: Update
-
-- [x] 05/2023,  release datasets.
+- [x] 02/2025, update 360BEV datasets and dataloader code.
+- [x] 05/2023, release datasets.
 - [x] 04/2023, release code and models.
 - [x] 03/2023, init repository.
 
@@ -39,8 +39,8 @@ Prepare datasets:
 - [Matterport3D](https://niessner.github.io/Matterport)
 
 Our extended datasets:
-- 360BEV-Stanford (214MB, ~3GB after extracted. **Download from [Google Drive](https://drive.google.com/file/d/1YZ8Ea0QwNu6jBDYa09EnQT4H0LN6Pgmz/view?usp=sharing)**)
-- 360BEV-Matterport (2GB, ~23GB after extracted. **Download from [Google Drive](https://drive.google.com/file/d/1YYVLq3ndvSP2aBlUsTlhbBa4sJ7AfjhB/view?usp=sharing)**)
+- 360BEV-Stanford (New name: Stanford-360) (1.06GB, ~1.6GB after extracted. **Download from [Google Drive](https://drive.google.com/file/d/1XzhYkJL_5pbT7I4YNiVYGRN-1ay3MsUW/view?usp=sharing)**)
+- 360BEV-Matterport (New name: Matterport-360) (24.27GB, ~30GB after extracted. **Download from [Google Drive](https://drive.google.com/file/d/1GoskbMx_tZ9kuk39jVeKrOgndMXBz-HP/view?usp=sharing)**)
 - 360FV-Matterport (50GB, ~51GB after extracted. **Download from [Google Drive](https://drive.google.com/file/d/1RD0sfINWJmGetremLu0ZO7ZvoSYRZVeJ/view?usp=sharing)**)
 
 Data statistics of 360BEV datasets:
@@ -64,23 +64,28 @@ data/
 │       └── semantic/*png
 │
 ├── 360BEV-Stanford
-│   ├── training
-│   └── valid
-│       ├── data_base_with_rotationz_realdepth/*h5
-│       └── ground_truth/*h5
+│   ├── bev
+│       └── *.h5 
+│   ├── train
+│       └── *.png 
+│   └── val
+│       └── *.png
 │
 ├── 360BEV-Matterport
-│   ├── training
-│   ├── testing
-│   └── valid
-│       ├── smnet_training_data_zteng/*h5
-│       └── topdown_gt_real_height/*h5
+│   ├── bev
+│       └── *.h5 
+│   ├── train
+│       └── *.png 
+│   └── val
+│       └── *.png
+│   └── test
+│       └── *.png
 │
 └── 360FV-Matterport
     ├── 17DRP5sb8fy
-    │   ├── depth/*png
-    │   ├── rgb/*png
-    │   └── semantic/*png   
+    │   ├── depth/*.png
+    │   ├── rgb/*.png
+    │   └── semantic/*.png   
     └── ...
 
 ```
